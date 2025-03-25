@@ -7,6 +7,7 @@ export const signupUser = createAsyncThunk(
   "auth/signupUser",
   async (userData, { rejectWithValue }) => {
     try {
+      console.log("Signup data being sent to API:", userData); // Debug log
       const response = await axios.post(`${BASE_URL}/auth/signup`, userData);
       return response.data;
     } catch (error) {
@@ -42,24 +43,46 @@ const getUserFromStorage = () => {
 //to fetch user profile
 export const fetchUserProfile = createAsyncThunk(
   "user/fetchProfile",
-  async (_, { rejectWithValue }) => {
+  async (userId, { rejectWithValue }) => {
     try {
       //get token from local storage
-      const user = localStorage.getItem("token");
-
+      const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("no authentication token found");
       }
-
       //configure axios request with token
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       };
-
       //making an api call to fetch user profile
-      const { data } = await axios.get(`${BASE_URL}/auth/profile`, config);
+      const { data } = await axios.get(`${BASE_URL}/auth/profile/${userId}`, config);
+      return data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message
+      );
+    }
+  }
+);
+
+export const fetchUsersByRole = createAsyncThunk(
+  "auth/fetchUsersByRole",
+  async (role, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const config = {
+        headers: { Authorization: `Bearer ${token}` }, // Fixed space after Bearer
+      };
+
+      const { data } = await axios.get(`${BASE_URL}/auth/role/${role}`, config);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -77,6 +100,7 @@ const initialState = {
   token: localStorage.getItem("token") || null,
   loading: false,
   error: null,
+  usersByRole: [], // New state to store users by role
 };
 
 // Auth Slice
@@ -128,7 +152,7 @@ const authSlice = createSlice({
       })
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.userDetails = action.payload;
+        state.userDetails = action.payload; // Store fetched user data
         state.error = null;
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
@@ -165,6 +189,21 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || "Login failed";
+      })
+      //to fetch users by role
+      .addCase(fetchUsersByRole.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUsersByRole.fulfilled, (state, action) => {
+        state.loading = false;
+        state.usersByRole = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchUsersByRole.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.usersByRole = [];
       });
   },
 });

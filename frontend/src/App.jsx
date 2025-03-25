@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import PrivateRoute from "../private route/PrivateRoute";
+import PrivateRoute from "../private route/PrivateRoute"; // Ensure the path is correct
 import SignupPage from "./login/signup";
 import SigninPage from "./login/Signin";
 import NurseDashboard from "./pages/nurse/NurseDashboard";
@@ -12,8 +12,14 @@ import "../global.css";
 import ServicePage from "./components/services/Services";
 import Layout from "../Layout";
 import UserProfile from "./pages/public/Profile";
+import CalendarPage from "./pages/admin/main menu item/CalendarPage";
+import ResearchDetail from "./components/research/ResearchDetail";
+import DepartmentDetail from "./components/departments/DepartmentDetails";
+import DepartmentsCrud from "./components/departments/DepartmentsCrud";
+import Research from "./components/research/Research";
 
 const App = () => {
+  console.log("App component rendering"); // Check if the App component is rendered
   return (
     <Router>
       <Routes>
@@ -24,8 +30,6 @@ const App = () => {
         <Route element={<PrivateRoute requiredRole="public" />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
-            <Route path="/services" element={<ServicePage />} />
-            <Route path="/profile" element={<UserProfile/>} />
           </Route>
         </Route>
 
@@ -61,7 +65,18 @@ const App = () => {
             </PrivateRoute>
           }
         />
-        <Route path="/services" element={<ServicePage />} />
+        
+        <Route path="/profile" element={<UserProfile />} />
+       
+
+        <Route element={<Layout />}>
+        <Route path="/research" element={<Research/>} />
+        <Route path="/research/:id" element={<ResearchDetail />} />
+          <Route path="/services" element={<ServicePage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/department/:id" element={<DepartmentDetail />} />
+          <Route path="/departments" element={<DepartmentsCrud />} />
+        </Route>
       </Routes>
     </Router>
   );

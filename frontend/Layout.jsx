@@ -4,13 +4,14 @@ import AdvancedHospitalFooter from "./src/pages/public/Footer";
 import HospitalAppBar from "./src/pages/public/Appbar";
 
 const Layout = () => {
+  console.log("Layout component rendering");
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <div className="app-container">
       {/* App Bar at the top */}
       <HospitalAppBar />
 
       {/* Main content section */}
-      <main style={{ flexGrow: 1, padding: 0 }}>
+      <main className="main-content">
         <Outlet /> {/* This will render child pages */}
       </main>
 

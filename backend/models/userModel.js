@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
     required: [true, "phoneNumber is required"],
     unique: true,
   },
+  profileImage:[{type:String}],
   dob: {
     type: Date,
     required: [true, "dob is required"],
@@ -61,6 +62,7 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  deviceToken:String,  //for push notification
 });
 
 //hash password before saving

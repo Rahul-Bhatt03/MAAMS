@@ -1,8 +1,11 @@
-import React, { useState, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { logoutUser } from '../../../features/authSlice';
-import { searchDatabase, clearSearchResults } from '../../../features/searchSlice';
+import React, { useState, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { logoutUser } from "../../../features/authSlice";
+import {
+  searchDatabase,
+  clearSearchResults,
+} from "../../../features/searchSlice";
 import {
   AppBar,
   Box,
@@ -28,104 +31,105 @@ import {
   Paper,
   CircularProgress,
   ClickAwayListener,
-} from '@mui/material';
+} from "@mui/material";
 
 // Icons
-import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
-import PersonIcon from '@mui/icons-material/Person';
-import HistoryIcon from '@mui/icons-material/History';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import LogoutIcon from '@mui/icons-material/Logout';
-import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import HomeIcon from '@mui/icons-material/Home';
-import EventIcon from '@mui/icons-material/Event';
-import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
-import ScienceIcon from '@mui/icons-material/Science';
-import WorkIcon from '@mui/icons-material/Work';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
-import ScheduleIcon from '@mui/icons-material/Schedule';
-import ArrowRightIcon from '@mui/icons-material/ArrowRight';
-import ClearIcon from '@mui/icons-material/Clear';
-import { debounce } from 'lodash';
+import MenuIcon from "@mui/icons-material/Menu";
+import SearchIcon from "@mui/icons-material/Search";
+import PersonIcon from "@mui/icons-material/Person";
+import HistoryIcon from "@mui/icons-material/History";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import LogoutIcon from "@mui/icons-material/Logout";
+import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
+import HomeIcon from "@mui/icons-material/Home";
+import EventIcon from "@mui/icons-material/Event";
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import ScienceIcon from "@mui/icons-material/Science";
+import WorkIcon from "@mui/icons-material/Work";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import ClearIcon from "@mui/icons-material/Clear";
+import { debounce } from "lodash";
+import { CalendarIcon } from "@mui/x-date-pickers";
 
 // Custom styled components
-const Search = styled('div')(({ theme }) => ({
-  position: 'relative',
+const Search = styled("div")(({ theme }) => ({
+  position: "relative",
   borderRadius: 30,
   backgroundColor: alpha(theme.palette.common.white, 0.15),
-  '&:hover': {
+  "&:hover": {
     backgroundColor: alpha(theme.palette.common.white, 0.25),
   },
   marginRight: theme.spacing(2),
   marginLeft: 0,
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
+  width: "100%",
+  [theme.breakpoints.up("sm")]: {
     marginLeft: theme.spacing(3),
-    width: 'auto',
+    width: "auto",
   },
-  transition: 'all 0.3s',
+  transition: "all 0.3s",
 }));
 
-const SearchIconWrapper = styled('div')(({ theme }) => ({
+const SearchIconWrapper = styled("div")(({ theme }) => ({
   padding: theme.spacing(0, 2),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  height: "100%",
+  position: "absolute",
+  pointerEvents: "none",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
-  '& .MuiInputBase-input': {
+  color: "inherit",
+  "& .MuiInputBase-input": {
     padding: theme.spacing(1, 1, 1, 0),
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '20ch',
-      '&:focus': {
-        width: '30ch',
+    transition: theme.transitions.create("width"),
+    width: "100%",
+    [theme.breakpoints.up("md")]: {
+      width: "20ch",
+      "&:focus": {
+        width: "30ch",
       },
     },
   },
 }));
 
 const SearchResults = styled(Paper)(({ theme }) => ({
-  position: 'absolute',
-  top: '100%',
+  position: "absolute",
+  top: "100%",
   right: 0,
   left: 0,
   zIndex: 1000,
-  maxHeight: '300px',
-  overflow: 'auto',
-  boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
-  borderRadius: '0 0 8px 8px',
-  marginTop: '2px',
+  maxHeight: "300px",
+  overflow: "auto",
+  boxShadow: "0 8px 16px rgba(0,0,0,0.15)",
+  borderRadius: "0 0 8px 8px",
+  marginTop: "2px",
 }));
 
 const ResultItem = styled(ListItem)(({ theme }) => ({
-  borderLeft: '3px solid transparent',
-  transition: 'all 0.2s',
-  '&:hover': {
+  borderLeft: "3px solid transparent",
+  transition: "all 0.2s",
+  "&:hover": {
     backgroundColor: alpha(theme.palette.primary.main, 0.05),
     borderLeftColor: theme.palette.primary.main,
   },
 }));
 
-const SearchSection = styled('div')(({ theme }) => ({
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
+const SearchSection = styled("div")(({ theme }) => ({
+  position: "relative",
+  display: "flex",
+  alignItems: "center",
 }));
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
-  backgroundColor: '#0d47a1',
-  background: 'linear-gradient(135deg, #0d47a1 0%, #1976d2 100%)',
-  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-  position: 'fixed',
+  backgroundColor: "#0d47a1",
+  background: "linear-gradient(135deg, #0d47a1 0%, #1976d2 100%)",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+  position: "fixed",
   top: 0,
   left: 0,
   right: 0,
@@ -133,41 +137,39 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
 }));
 
 const StyledToolbar = styled(Toolbar)({
-  display: 'flex',
-  justifyContent: 'space-between',
+  display: "flex",
+  justifyContent: "space-between",
 });
 
 const NavButton = styled(Button)(({ theme, active }) => ({
-  color: 'white',
+  color: "white",
   margin: theme.spacing(0, 0.5),
   fontWeight: 500,
-  fontSize: '0.95rem',
-  position: 'relative',
-  '&:after': {
+  fontSize: "0.95rem",
+  position: "relative",
+  "&:after": {
     content: '""',
-    position: 'absolute',
-    width: active ? '80%' : '0%',
-    height: '3px',
-    bottom: '0',
-    left: '10%',
+    position: "absolute",
+    width: active ? "80%" : "0%",
+    height: "3px",
+    bottom: "0",
+    left: "10%",
     backgroundColor: theme.palette.secondary.main,
-    transition: 'width 0.3s ease',
-    borderRadius: '3px',
+    transition: "width 0.3s ease",
+    borderRadius: "3px",
   },
-  '&:hover:after': {
-    width: '80%',
+  "&:hover:after": {
+    width: "80%",
   },
 }));
 
 const NavBarSkeleton = ({ children }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    {children}
-  </Box>
+  <Box sx={{ display: "flex", alignItems: "center" }}>{children}</Box>
 );
 
 const NoResultsMessage = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
-  textAlign: 'center',
+  textAlign: "center",
   color: theme.palette.text.secondary,
 }));
 
@@ -176,21 +178,21 @@ const HospitalAppBar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   // Get authentication state from Redux
   const { token, user } = useSelector((state) => {
     let authState = state.auth;
     if (!authState.user) {
-      const storedUser = localStorage.getItem('user');
+      const storedUser = localStorage.getItem("user");
       if (storedUser) {
         try {
           authState = {
             ...authState,
-            user: JSON.parse(storedUser)
+            user: JSON.parse(storedUser),
           };
         } catch (error) {
-          console.error('Error parsing stored user:', error);
+          console.error("Error parsing stored user:", error);
         }
       }
     }
@@ -198,15 +200,22 @@ const HospitalAppBar = () => {
   });
 
   // Fixed: Properly handle potentially undefined search state
-  const searchState = useSelector((state) => state.search || { results: { users: [], departments: [] }, loading: false, error: null });
+  const searchState = useSelector(
+    (state) =>
+      state.search || {
+        results: { users: [], departments: [] },
+        loading: false,
+        error: null,
+      }
+  );
   const { results, loading: searchLoading, error: searchError } = searchState;
-  
-  const isAuthenticated = !!token || !!localStorage.getItem('token');
+
+  const isAuthenticated = !!token || !!localStorage.getItem("token");
 
   // Local state for UI
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 10;
@@ -217,7 +226,9 @@ const HospitalAppBar = () => {
   const debouncedSearch = useCallback(
     debounce((query) => {
       if (query.trim().length > 2) {
-        dispatch(searchDatabase({ query, page: currentPage, limit: resultsPerPage }));
+        dispatch(
+          searchDatabase({ query, page: currentPage, limit: resultsPerPage })
+        );
         setIsSearchOpen(true);
       } else {
         dispatch(clearSearchResults());
@@ -231,7 +242,9 @@ const HospitalAppBar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchValue.trim()) {
-      dispatch(searchDatabase({ query: searchValue, page: 1, limit: resultsPerPage }));
+      dispatch(
+        searchDatabase({ query: searchValue, page: 1, limit: resultsPerPage })
+      );
       setCurrentPage(1);
       setIsSearchOpen(true);
     }
@@ -239,7 +252,7 @@ const HospitalAppBar = () => {
 
   // Clear search
   const handleClearSearch = () => {
-    setSearchValue('');
+    setSearchValue("");
     dispatch(clearSearchResults());
     setIsSearchOpen(false);
   };
@@ -252,21 +265,30 @@ const HospitalAppBar = () => {
 
   // List of main navigation links
   const navLinks = [
-    { name: 'Home', path: '/', icon: <HomeIcon /> },
-    { name: 'Appointments', path: '/appointments', icon: <EventIcon /> },
-    { name: 'Services', path: '/services', icon: <MedicalServicesIcon /> },
-    { name: 'Departments', path: '/departments', icon: <LocalHospitalIcon /> },
-    { name: 'Research', path: '/research', icon: <ScienceIcon /> },
-    { name: 'Careers', path: '/careers', icon: <WorkIcon /> },
+    { name: "Home", path: "/", icon: <HomeIcon /> },
+    { name: "Appointments", path: "/appointments", icon: <EventIcon /> },
+    { name: "Services", path: "/services", icon: <MedicalServicesIcon /> },
+    { name: "Departments", path: "/departments", icon: <LocalHospitalIcon /> },
+    { name: "Research", path: "/research", icon: <ScienceIcon /> },
+    { name: "Careers", path: "/careers", icon: <WorkIcon /> },
+    { name: "Calendar", path: "/calendar", icon: <CalendarIcon /> },
   ];
 
   // List of profile menu items
   const profileMenuItems = [
-    { name: 'Profile', path: '/profile', icon: <PersonIcon /> },
-    { name: 'Medical History', path: '/medical-history', icon: <HistoryIcon /> },
-    { name: 'Notifications', path: '/notifications', icon: <NotificationsIcon /> },
-    { name: 'Appointments', path: '/my-appointments', icon: <ScheduleIcon /> },
-    { name: 'Saved Doctors', path: '/saved-doctors', icon: <BookmarkIcon /> },
+    { name: "Profile", path: "/profile", icon: <PersonIcon /> },
+    {
+      name: "Medical History",
+      path: "/medical-history",
+      icon: <HistoryIcon />,
+    },
+    {
+      name: "Notifications",
+      path: "/notifications",
+      icon: <NotificationsIcon />,
+    },
+    { name: "Appointments", path: "/my-appointments", icon: <ScheduleIcon /> },
+    { name: "Saved Doctors", path: "/saved-doctors", icon: <BookmarkIcon /> },
   ];
 
   // Check if given path is active
@@ -281,23 +303,34 @@ const HospitalAppBar = () => {
   const handleLogout = () => {
     dispatch(logoutUser());
     setProfileMenuOpen(false);
-    navigate('/');
+    navigate("/");
   };
 
   // Mobile drawer content
   const drawer = (
     <Box sx={{ width: 280 }}>
-      <Box sx={{ height: { xs: 56, sm: 64 }, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} />
-      
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2, mt: 2 }}>
-        <Avatar src="/hospital-logo.png" alt="Hospital Logo" sx={{ width: 100, height: 100 }} />
+      <Box
+        sx={{
+          height: { xs: 56, sm: 64 },
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "center",
+        }}
+      />
+
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 2, mt: 2 }}>
+        <Avatar
+          src="/hospital-logo.png"
+          alt="Hospital Logo"
+          sx={{ width: 100, height: 100 }}
+        />
       </Box>
 
       {isAuthenticated && (
-        <Box sx={{ p: 2, textAlign: 'center' }}>
-          <Typography variant="h6">{user?.name || 'User'}</Typography>
+        <Box sx={{ p: 2, textAlign: "center" }}>
+          <Typography variant="h6">{user?.name || "User"}</Typography>
           <Typography variant="body2" color="text.secondary">
-            {user?.role === 'doctor' ? 'Doctor' : 'Patient'}
+            {user?.role === "doctor" ? "Doctor" : "Patient"}
           </Typography>
         </Box>
       )}
@@ -377,7 +410,8 @@ const HospitalAppBar = () => {
   );
 
   // Determine if search results are empty
-  const hasSearchResults = results && (results.users?.length > 0 || results.departments?.length > 0);
+  const hasSearchResults =
+    results && (results.users?.length > 0 || results.departments?.length > 0);
 
   return (
     <>
@@ -402,10 +436,10 @@ const HospitalAppBar = () => {
                 component={Link}
                 to="/"
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  textDecoration: 'none',
-                  color: 'inherit',
+                  display: "flex",
+                  alignItems: "center",
+                  textDecoration: "none",
+                  color: "inherit",
                 }}
               >
                 <Avatar
@@ -415,8 +449,8 @@ const HospitalAppBar = () => {
                     width: 40,
                     height: 40,
                     mr: 1,
-                    border: '2px solid white',
-                    boxShadow: '0 0 10px rgba(255,255,255,0.3)',
+                    border: "2px solid white",
+                    boxShadow: "0 0 10px rgba(255,255,255,0.3)",
                   }}
                 />
                 <Typography
@@ -424,19 +458,25 @@ const HospitalAppBar = () => {
                   noWrap
                   sx={{
                     fontWeight: 700,
-                    letterSpacing: '.1rem',
-                    color: 'inherit',
-                    display: { xs: 'none', md: 'flex' },
+                    letterSpacing: ".1rem",
+                    color: "inherit",
+                    display: { xs: "none", md: "flex" },
                   }}
                 >
-                  MediCare<Box component="span" sx={{ color: theme.palette.secondary.main }}>+</Box>
+                  MediCare
+                  <Box
+                    component="span"
+                    sx={{ color: theme.palette.secondary.main }}
+                  >
+                    +
+                  </Box>
                 </Typography>
               </Box>
             </NavBarSkeleton>
 
             {/* Navigation Links (Desktop) */}
             {!isMobile && (
-              <Box sx={{ display: 'flex', flexGrow: 1, ml: 4 }}>
+              <Box sx={{ display: "flex", flexGrow: 1, ml: 4 }}>
                 {navLinks.map((link) => (
                   <NavButton
                     key={link.name}
@@ -452,12 +492,14 @@ const HospitalAppBar = () => {
             )}
 
             {/* Search Bar with Results */}
-            <Box sx={{ 
-              flexGrow: { xs: 1, md: 0 }, 
-              display: 'flex', 
-              justifyContent: 'flex-end',
-              alignItems: 'center' 
-            }}>
+            <Box
+              sx={{
+                flexGrow: { xs: 1, md: 0 },
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+              }}
+            >
               <ClickAwayListener onClickAway={handleClickAway}>
                 <SearchSection>
                   <form onSubmit={handleSearch}>
@@ -467,7 +509,7 @@ const HospitalAppBar = () => {
                       </SearchIconWrapper>
                       <StyledInputBase
                         placeholder="Search..."
-                        inputProps={{ 'aria-label': 'search' }}
+                        inputProps={{ "aria-label": "search" }}
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
                       />
@@ -476,11 +518,11 @@ const HospitalAppBar = () => {
                           size="small"
                           onClick={handleClearSearch}
                           sx={{
-                            position: 'absolute',
+                            position: "absolute",
                             right: 8,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            color: 'white',
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            color: "white",
                           }}
                         >
                           <ClearIcon fontSize="small" />
@@ -493,7 +535,13 @@ const HospitalAppBar = () => {
                   {isSearchOpen && (
                     <SearchResults>
                       {searchLoading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            p: 2,
+                          }}
+                        >
                           <CircularProgress size={24} />
                         </Box>
                       ) : searchError ? (
@@ -502,13 +550,25 @@ const HospitalAppBar = () => {
                         </NoResultsMessage>
                       ) : !hasSearchResults && searchValue.trim().length > 2 ? (
                         <NoResultsMessage>
-                          <Typography>No results found for "{searchValue}"</Typography>
+                          <Typography>
+                            No results found for "{searchValue}"
+                          </Typography>
                         </NoResultsMessage>
                       ) : (
                         <>
                           {results.users?.length > 0 && (
                             <>
-                              <Typography variant="subtitle2" sx={{ px: 2, py: 1, backgroundColor: alpha(theme.palette.primary.main, 0.1) }}>
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  px: 2,
+                                  py: 1,
+                                  backgroundColor: alpha(
+                                    theme.palette.primary.main,
+                                    0.1
+                                  ),
+                                }}
+                              >
                                 Users
                               </Typography>
                               <List dense>
@@ -516,7 +576,9 @@ const HospitalAppBar = () => {
                                   <ResultItem
                                     key={user._id}
                                     button
-                                    onClick={() => handleResultClick('user', user._id)}
+                                    onClick={() =>
+                                      handleResultClick("user", user._id)
+                                    }
                                   >
                                     <ListItemIcon>
                                       <PersonIcon />
@@ -533,7 +595,17 @@ const HospitalAppBar = () => {
 
                           {results.departments?.length > 0 && (
                             <>
-                              <Typography variant="subtitle2" sx={{ px: 2, py: 1, backgroundColor: alpha(theme.palette.primary.main, 0.1) }}>
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  px: 2,
+                                  py: 1,
+                                  backgroundColor: alpha(
+                                    theme.palette.primary.main,
+                                    0.1
+                                  ),
+                                }}
+                              >
                                 Departments
                               </Typography>
                               <List dense>
@@ -541,14 +613,21 @@ const HospitalAppBar = () => {
                                   <ResultItem
                                     key={dept._id}
                                     button
-                                    onClick={() => handleResultClick('department', dept._id)}
+                                    onClick={() =>
+                                      handleResultClick("department", dept._id)
+                                    }
                                   >
                                     <ListItemIcon>
                                       <LocalHospitalIcon />
                                     </ListItemIcon>
                                     <ListItemText
                                       primary={dept.name}
-                                      secondary={dept.description.substring(0, 60) + (dept.description.length > 60 ? '...' : '')}
+                                      secondary={
+                                        dept.description.substring(0, 60) +
+                                        (dept.description.length > 60
+                                          ? "..."
+                                          : "")
+                                      }
                                     />
                                   </ResultItem>
                                 ))}
@@ -557,12 +636,20 @@ const HospitalAppBar = () => {
                           )}
 
                           {hasSearchResults && (
-                            <Box sx={{ p: 1, display: 'flex', justifyContent: 'center' }}>
+                            <Box
+                              sx={{
+                                p: 1,
+                                display: "flex",
+                                justifyContent: "center",
+                              }}
+                            >
                               <Button
                                 size="small"
                                 color="primary"
                                 onClick={() => {
-                                  navigate(`/search-results?query=${searchValue}`);
+                                  navigate(
+                                    `/search-results?query=${searchValue}`
+                                  );
                                   setIsSearchOpen(false);
                                 }}
                               >
@@ -579,14 +666,16 @@ const HospitalAppBar = () => {
 
               {/* Login Button or Profile Menu */}
               {isAuthenticated ? (
-                <Box sx={{ position: 'relative' }}>
+                <Box sx={{ position: "relative" }}>
                   <Tooltip title="Account settings">
                     <IconButton
                       onClick={handleProfileMenuToggle}
                       sx={{
                         p: 0.5,
-                        border: profileMenuOpen ? `2px solid ${theme.palette.secondary.main}` : '2px solid transparent',
-                        transition: 'all 0.3s',
+                        border: profileMenuOpen
+                          ? `2px solid ${theme.palette.secondary.main}`
+                          : "2px solid transparent",
+                        transition: "all 0.3s",
                       }}
                     >
                       <Badge
@@ -594,13 +683,13 @@ const HospitalAppBar = () => {
                         color="error"
                         overlap="circular"
                         anchorOrigin={{
-                          vertical: 'top',
-                          horizontal: 'right',
+                          vertical: "top",
+                          horizontal: "right",
                         }}
                       >
                         <Avatar
-                          alt={user?.name || 'User'}
-                          src={user?.profilePic || '/default-avatar.png'}
+                          alt={user?.name || "User"}
+                          src={user?.profilePic || "/default-avatar.png"}
                           sx={{ width: 35, height: 35 }}
                         />
                       </Badge>
@@ -613,7 +702,7 @@ const HospitalAppBar = () => {
                   color="secondary"
                   component={Link}
                   to="/signin"
-                  sx={{ ml: 2, borderRadius: '24px', px: 3 }}
+                  sx={{ ml: 2, borderRadius: "24px", px: 3 }}
                 >
                   Sign In
                 </Button>
@@ -622,7 +711,7 @@ const HospitalAppBar = () => {
           </StyledToolbar>
         </Container>
       </StyledAppBar>
-      
+
       <Toolbar />
 
       {/* Mobile Drawer */}
@@ -632,39 +721,46 @@ const HospitalAppBar = () => {
         onClose={handleDrawerToggle}
         ModalProps={{ keepMounted: true }}
         sx={{
-          display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': { width: 280 },
+          display: { xs: "block", md: "none" },
+          "& .MuiDrawer-paper": { width: 280 },
         }}
       >
         {drawer}
       </Drawer>
-      
+
       {/* Profile Drawer */}
       <Drawer
         anchor="right"
         open={profileMenuOpen}
         onClose={handleProfileMenuToggle}
         sx={{
-          '& .MuiDrawer-paper': {
+          "& .MuiDrawer-paper": {
             width: 300,
             borderTopLeftRadius: 16,
             borderBottomLeftRadius: 16,
           },
         }}
       >
-        <Box sx={{ height: { xs: 56, sm: 64 }, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} />
-        
-        <Box sx={{ p: 3, backgroundColor: '#f5f9ff' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Box
+          sx={{
+            height: { xs: 56, sm: 64 },
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+          }}
+        />
+
+        <Box sx={{ p: 3, backgroundColor: "#f5f9ff" }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
             <Avatar
-              alt={user?.name || 'User'}
-              src={user?.profilePic || '/default-avatar.png'}
+              alt={user?.name || "User"}
+              src={user?.profilePic || "/default-avatar.png"}
               sx={{ width: 60, height: 60, mr: 2 }}
             />
             <Box>
-              <Typography variant="h6">{user?.name || 'User'}</Typography>
+              <Typography variant="h6">{user?.name || "User"}</Typography>
               <Typography variant="body2" color="text.secondary">
-                {user?.email || 'user@example.com'}
+                {user?.email || "user@example.com"}
               </Typography>
             </Box>
           </Box>
@@ -693,15 +789,23 @@ const HospitalAppBar = () => {
               to={item.path}
               onClick={handleProfileMenuToggle}
               sx={{
-                borderLeft: isActiveLink(item.path) ? `4px solid ${theme.palette.primary.main}` : 'none',
-                backgroundColor: isActiveLink(item.path) ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                borderLeft: isActiveLink(item.path)
+                  ? `4px solid ${theme.palette.primary.main}`
+                  : "none",
+                backgroundColor: isActiveLink(item.path)
+                  ? alpha(theme.palette.primary.main, 0.1)
+                  : "transparent",
               }}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.name} />
-              {item.name === 'Notifications' && unreadNotificationsCount > 0 && (
-                <Badge badgeContent={unreadNotificationsCount} color="error" />
-              )}
+              {item.name === "Notifications" &&
+                unreadNotificationsCount > 0 && (
+                  <Badge
+                    badgeContent={unreadNotificationsCount}
+                    color="error"
+                  />
+                )}
             </ListItem>
           ))}
         </List>

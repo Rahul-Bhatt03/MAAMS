@@ -92,7 +92,9 @@ export const loginUser = async (req, res) => {
 export const getUserProfile = async (req, res) => {
   try {
     // Extract userId from the request body (or query string if you prefer)
-    const { userId } = req.body; // or req.query.userId if using query params
+    // const { userId } = req.body; // or req.query.userId if using query params
+    const { userId } = req.params; // Extract userId from route parameters
+
 
     // Check if userId is provided
     if (!userId) {
@@ -102,7 +104,6 @@ export const getUserProfile = async (req, res) => {
     // Fetch the user based on the provided userId
     const user = await User.findById(userId)
       .select('-password') // Exclude password from the result
-      .populate('departments') // Populate related departments
       .lean(); // Converts to plain JS object
 
     if (!user) {
@@ -116,5 +117,19 @@ export const getUserProfile = async (req, res) => {
       message: 'Error fetching user profile',
       error: error.message,
     });
+  }
+};
+
+export const getUserByRole = async (req, res) => {
+  try {
+    const { role } = req.params; // Extract role from route parameters
+
+    // Fetch users with the specified role
+    const users = await User.find({ role }).select('-password'); // Use User.find, not UsersPage.find
+
+    // Send the users back in the response
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching users by role', error: error.message });
   }
 };

@@ -12,7 +12,10 @@ import {
   ExitToApp as LogoutIcon, Assignment as AssignmentIcon, PersonAdd as PersonAddIcon,
   MonetizationOn as MonetizationOnIcon, Biotech as BiotechIcon, Bed as BedIcon,
   Report as ReportIcon,
-  SupervisedUserCircle
+  SupervisedUserCircle, Person as PersonIcon,
+  SupervisedUserCircleOutlined,
+  ReportGmailerrorredRounded,
+  LocalFireDepartmentRounded
 } from '@mui/icons-material';
 import { ThemeProvider, createTheme, styled, useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +31,11 @@ import BillingPage from './hospital menu items/BillingPage'
 import ReportsPage from './hospital menu items/ReportsPage'
 import { logoutUser } from '../../../features/authSlice';
 import { useDispatch } from 'react-redux';
+import ServicePage from '../../components/services/Services';
+import ProfilePage from '../public/Profile'; // Import the new ProfilePage
+import SettingsPage from '../../components/setting/SettingsPage'; // Import the new SettingsPage
+import Research from '../../components/research/Research';
+import DepartmentsCrud from '../../components/departments/DepartmentsCrud';
 
 // Create a theme with hospital colors
 const theme = createTheme({
@@ -56,7 +64,26 @@ const theme = createTheme({
 // Styled components
 const drawerWidth = 240;
 
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
+// Fix for the StyledAppBar component
+const StyledAppBar = styled(AppBar, { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'isMobile' })(
+  ({ theme, open, isMobile }) => ({
+    transition: theme.transitions.create(['margin', 'width'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen
+    }),
+    ...(isMobile ? {} : (open && {
+      width: `calc(100% - ${drawerWidth}px)`,
+      marginLeft: `${drawerWidth}px`,
+      transition: theme.transitions.create(['margin', 'width'], {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.enteringScreen
+      })
+    }))
+  })
+);
+
+// Fix for the Main component
+const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'isMobile' })(
   ({ theme, open, isMobile }) => ({
     flexGrow: 1,
     padding: theme.spacing(3),
@@ -65,23 +92,6 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
       duration: theme.transitions.duration.leavingScreen
     }),
     marginLeft: isMobile ? 0 : (open ? drawerWidth : 0),
-  })
-);
-
-const StyledAppBar = styled(AppBar, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open, isMobile }) => ({
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    }),
-    ...(isMobile ? {} : open && {
-      width: `calc(100% - ${drawerWidth}px)`,
-      marginLeft: `${drawerWidth}px`,
-      transition: theme.transitions.create(['margin', 'width'], {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen
-      })
-    })
   })
 );
 
@@ -105,9 +115,19 @@ const mainMenuItems = [
 const hospitalMenuItems = [
   { id: 'staff', text: 'Staff Management', icon: <PeopleIcon />, component: <StaffPage/> },
   { id: 'patients', text: 'Patient Records', icon: <BedIcon />, component: <PatientsPage /> },
-  { id: 'laboratory', text: 'Laboratory', icon: <BiotechIcon />, component: <LaboratoryPage /> },
+  { id: 'research', text: 'Research', icon: <ReportGmailerrorredRounded/>, component: <Research /> },
+  { id: 'pharmacy', text: 'Pharmacy', icon: <BiotechIcon />, component: <LaboratoryPage /> },
   { id: 'billing', text: 'Billing', icon: <MonetizationOnIcon />, component: <BillingPage /> },
-  { id: 'reports', text: 'Reports', icon: <ReportIcon />, component: <ReportsPage /> }
+  { id: 'reports', text: 'Reports', icon: <ReportIcon />, component: <ReportsPage /> },
+  { id: 'services', text: 'Services', icon: <SupervisedUserCircleOutlined />, component: <ServicePage /> },
+  { id: 'department', text: 'Department', icon: <LocalFireDepartmentRounded/>, component: <DepartmentsCrud /> },
+
+]
+
+// Adding profile menu items
+const profileMenuItems = [
+  { id: 'profile', text: 'Profile', icon: <PersonIcon />, component: <ProfilePage /> },
+  { id: 'settings', text: 'Settings', icon: <SettingsIcon />, component: <SettingsPage /> }
 ];
 
 const AdminDashboard = () => {
@@ -127,7 +147,7 @@ const AdminDashboard = () => {
   }, [isMobile]);
 
   // Combine all menu items for easier lookup
-  const allMenuItems = [...mainMenuItems, ...hospitalMenuItems];
+  const allMenuItems = [...mainMenuItems, ...hospitalMenuItems, ...profileMenuItems];
   
   // Get current page component
   const getCurrentPageComponent = () => {
@@ -144,6 +164,10 @@ const AdminDashboard = () => {
   
   const handlePageChange = (page) => {
     setActivePage(page);
+    // Close the profile menu if open
+    if (anchorEl) {
+      setAnchorEl(null);
+    }
     // For mobile, close drawer after selecting a page
     if (isMobile) {
       setOpen(false);
@@ -151,7 +175,10 @@ const AdminDashboard = () => {
   };
 
   // Logout confirmation dialog
-  const handleLogoutClick = () => setLogoutDialogOpen(true);
+  const handleLogoutClick = () => {
+    setAnchorEl(null); // Close profile menu if open
+    setLogoutDialogOpen(true);
+  };
   const handleLogoutCancel = () => setLogoutDialogOpen(false);
   const handleLogoutConfirm = () => {
      dispatch(logoutUser());
@@ -217,8 +244,11 @@ const AdminDashboard = () => {
                 },
               }}
             >
-              <MenuItem>Notification 1</MenuItem>
-              <MenuItem>Notification 2</MenuItem>
+              {/* Notification items can be added here */}
+              <MenuItem onClick={handleNotificationsClose}>New patient admitted</MenuItem>
+              <MenuItem onClick={handleNotificationsClose}>Lab results ready</MenuItem>
+              <MenuItem onClick={handleNotificationsClose}>Staff meeting at 2 PM</MenuItem>
+              <MenuItem onClick={handleNotificationsClose}>System maintenance scheduled</MenuItem>
             </Menu>
             
             {/* Profile */}
@@ -237,8 +267,8 @@ const AdminDashboard = () => {
               open={Boolean(anchorEl)}
               onClose={handleProfileMenuClose}
             >
-              <MenuItem onClick={handleProfileMenuClose}>Profile</MenuItem>
-              <MenuItem onClick={handleProfileMenuClose}>Settings</MenuItem>
+              <MenuItem onClick={() => handlePageChange('profile')}>Profile</MenuItem>
+              <MenuItem onClick={() => handlePageChange('settings')}>Settings</MenuItem>
             </Menu>
           </Toolbar>
         </StyledAppBar>
@@ -310,6 +340,31 @@ const AdminDashboard = () => {
           {/* Hospital Management Items */}
           <List>
             {hospitalMenuItems.map((item) => (
+              <ListItem key={item.id} disablePadding>
+                <ListItemButton
+                  selected={activePage === item.id} 
+                  onClick={() => handlePageChange(item.id)}
+                >
+                  <ListItemIcon>
+                    {React.cloneElement(item.icon, { 
+                      color: activePage === item.id ? 'primary' : 'inherit' 
+                    })}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+          
+          <Divider />
+          
+          {/* User Profile Items - Also shown in sidebar for convenience */}
+          <Typography variant="caption" color="text.secondary" sx={{ px: 2, py: 1 }}>
+            USER ACCOUNT
+          </Typography>
+          
+          <List>
+            {profileMenuItems.map((item) => (
               <ListItem key={item.id} disablePadding>
                 <ListItemButton
                   selected={activePage === item.id} 

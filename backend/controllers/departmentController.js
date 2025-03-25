@@ -33,13 +33,14 @@ export const getDepartmentById = async (req, res) => {
 // Create new department
 export const createDepartment = async (req, res) => {
   try {
-    const { name, description, services, timings } = req.body;
+    const { name, description, services, timings ,image} = req.body;
 
     const newDepartment = new Department({
       name,
       description,
       services: services || [],
       timings,
+      image,
       doctors: [],
       appointments: []
     });
@@ -54,7 +55,7 @@ export const createDepartment = async (req, res) => {
 // Update department
 export const updateDepartment = async (req, res) => {
   try {
-    const { name, description, services, timings } = req.body;
+    const { name, description, services, timings,image } = req.body;
 
     const updatedDepartment = await Department.findByIdAndUpdate(
       req.params.id,
@@ -63,6 +64,7 @@ export const updateDepartment = async (req, res) => {
         description,
         services,
         timings,
+        image,
         updatedAt: Date.now()
       },
       { new: true, runValidators: true }

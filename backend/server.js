@@ -7,6 +7,11 @@ import searchRoutes from "./routes/searchRoutes.js";
 import serviceRoutes from './routes/serviceRoutes.js'
 import departmentRoutes from './routes/departmentRoutes.js'
 import appointmentRoutes from './routes/appointmentRoutes.js'
+import doctorRoutes from './routes/doctorRoutes.js';
+import researchRoutes from './routes/researchRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
+import eventRoutes from '../backend/routes/eventsRoutes.js'
+import patientRoutes from '../backend/routes/patientRoutes.js'
 import http from "http";
 import { WebSocketServer } from "ws";
 import { type } from "os";
@@ -28,7 +33,11 @@ app.use("/api", searchRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/appointments", appointmentRoutes);
-
+app.use("/api/events", eventRoutes);
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/research', researchRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/patients',patientRoutes)
 
 //create the http server from the express app
 const server = http.createServer(app);
