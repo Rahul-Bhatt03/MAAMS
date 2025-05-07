@@ -61,7 +61,7 @@ const getAllPatients = asyncHandler(async (req, res) => {
     new ApiResponse(
       200,
       {
-        patients,
+        patients: Array.isArray(patients) ? patients : [patients], // Ensure array
         pagination: {
           total: totalPatients,
           page: parseInt(page),

@@ -12,6 +12,11 @@ import researchRoutes from './routes/researchRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import eventRoutes from '../backend/routes/eventsRoutes.js'
 import patientRoutes from '../backend/routes/patientRoutes.js'
+import nurseRoutes from '../backend/routes/nurseRoutes.js'
+import pharmacistRoutes from '../backend/routes/pharmacistRoutes.js'
+import medicineRoutes from '../backend/routes/medicineRoutes.js'
+import paymentRoutes from '../backend/routes/paymentRoutes.js'
+import orderRoutes from '../backend/routes/orderRoutes.js'
 import http from "http";
 import { WebSocketServer } from "ws";
 import { type } from "os";
@@ -38,6 +43,12 @@ app.use('/api/doctors', doctorRoutes);
 app.use('/api/research', researchRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/patients',patientRoutes)
+app.use('/api/nurses',nurseRoutes)
+app.use('/api/pharmacist',pharmacistRoutes)
+app.use('/api/medicines', medicineRoutes); 
+app.use('/api/payments', paymentRoutes);
+app.use('/api/orders', orderRoutes);
+
 
 //create the http server from the express app
 const server = http.createServer(app);
@@ -67,6 +78,7 @@ wss.on("onnection", (ws) => {
     console.log("received message:", message.toString());
   });
 });
+console.log(process.env.MONGO_URL);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`server running on port ${PORT}`));

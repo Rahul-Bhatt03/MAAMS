@@ -7,38 +7,45 @@ import {
   updateAppointmentStatus,
   deleteAppointment,
   getAppointmentsByDepartment,
-  getAppointmentsByDoctor
+  getDoctorAppointments,
+  getUserAppointments,
+  getAvailableTimeSlots
 } from '../controllers/appointmentController.js';
-
-import protect from '../middleware/authMiddleware.js';
+import { protect} from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// GET all appointments
-router.get('/', protect, getAppointments);
-
-// GET appointment by ID
-router.get('/:id', protect, getAppointmentById);
-
-// POST create new appointment
-router.post('/', createAppointment); //protect hatayeko xuu just for test
-
-// Only admin/staff routes below
+// Protect all routes
 router.use(protect);
 
-// PUT update appointment details
-router.put('/:id', updateAppointment);
+// Get all appointments (admin only)
+router.get('/', getAppointments);
 
-// PATCH update appointment status
-router.patch('/:id/status', updateAppointmentStatus);
+// Get appointments for current user
+router.get('/my-appointments', getUserAppointments);
 
-// DELETE appointment (soft delete)
-router.delete('/:id', deleteAppointment);
+// Get appointments for specific doctor
+router.get('/doctor/:doctorId', getDoctorAppointments);
 
-// GET appointments by department
+// Get appointments by department
 router.get('/department/:departmentId', getAppointmentsByDepartment);
 
-// GET appointments by doctor
-router.get('/doctor/:doctorId', getAppointmentsByDoctor);
+// Get available time slots for a doctor
+router.get('/availability/:doctorId', getAvailableTimeSlots);
+
+// Get single appointment
+router.get('/:id', getAppointmentById);
+
+// Create new appointment
+router.post('/', createAppointment);
+
+// Update appointment
+router.put('/:id', updateAppointment);
+
+// Update appointment status
+router.patch('/:id/status',  updateAppointmentStatus);
+
+// Delete appointment
+router.delete('/:id', deleteAppointment);
 
 export default router;
