@@ -1,4 +1,3 @@
-// Create a new file: src/utils/axiosConfig.js
 
 import axios from 'axios';
 import BASE_URL from '../features/baseurl';

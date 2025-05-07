@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { Box, Typography, Button, Slide, Paper, IconButton } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import CloseIcon from "@mui/icons-material/Close";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
   const [openChat, setOpenChat] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <Box
@@ -78,6 +80,7 @@ const HeroSection = () => {
               borderRadius: "5px",
               textTransform: "none",
             }}
+            onClick={()=>navigate('/appointments')}
           >
             Book an Appointment
           </Button>

@@ -9,6 +9,9 @@ import appointmentReducer from "./features/appointmentSlice.js";
 import departmentReducer from './features/departmentSlice.js'
 import uploadReducer from './features/uploadSlice';
 import patientReducer from './features/patientSlice.js'
+import nurseReducer from './features/nurseSlice.js'
+import pharmacistReducer from './features/pharmacistSlice.js'
+
 const store = configureStore({
   reducer: {
     auth: authSliceReducer, // Add reducers here
@@ -21,6 +24,8 @@ const store = configureStore({
     departments:departmentReducer,
     upload: uploadReducer,
     patients:patientReducer,
+    nurses:nurseReducer,
+    pharmacists:pharmacistReducer,
   },
 });
 

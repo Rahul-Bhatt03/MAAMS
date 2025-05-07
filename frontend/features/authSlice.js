@@ -33,7 +33,8 @@ export const loginUser = createAsyncThunk(
 const getUserFromStorage = () => {
   try {
     const user = localStorage.getItem("user");
-    return user ? JSON.parse(user) : null;
+    console.log("User from localStorage:",typeof user);
+    return user&&user!="undefined" ? JSON.parse(`${user}`) : null;
   } catch (error) {
     console.error("Error parsing user from localStorage:", error);
     return null;

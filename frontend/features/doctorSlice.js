@@ -217,7 +217,7 @@ const doctorSlice = createSlice({
       })
       .addCase(fetchDoctorsByDepartment.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.items = action.payload.data||action.payload;
       })
       .addCase(fetchDoctorsByDepartment.rejected, (state, action) => {
         state.loading = false;

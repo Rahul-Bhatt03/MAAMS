@@ -17,8 +17,10 @@ import ResearchDetail from "./components/research/ResearchDetail";
 import DepartmentDetail from "./components/departments/DepartmentDetails";
 import DepartmentsCrud from "./components/departments/DepartmentsCrud";
 import Research from "./components/research/Research";
+import AppointmentBookingForm from "./components/appointments/AppointmentBookingForm";
 
 const App = () => {
+  // console.log(process.env);
   console.log("App component rendering"); // Check if the App component is rendered
   return (
     <Router>
@@ -76,6 +78,7 @@ const App = () => {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/department/:id" element={<DepartmentDetail />} />
           <Route path="/departments" element={<DepartmentsCrud />} />
+          <Route path="/appointments" element={<AppointmentBookingForm />} />
         </Route>
       </Routes>
     </Router>

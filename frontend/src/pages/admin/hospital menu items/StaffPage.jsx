@@ -30,36 +30,20 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styled } from '@mui/material/styles';
+import { createPharmacist, fetchAllPharmacists, updatePharmacist } from '../../../../features/pharmacistSlice';
+import { createNurse, fetchAllNurses, updateNurse } from '../../../../features/nurseSlice';
 
-// Enum for specializations
+// Constants
 const SPECIALIZATIONS = [
-  'Cardiology',
-  'Dermatology',
-  'Endocrinology',
-  'Gastroenterology',
-  'Neurology',
-  'Oncology',
-  'Orthopedics',
-  'Pediatrics',
-  'Psychiatry',
-  'Urology'
+  'Cardiology', 'Dermatology', 'Endocrinology', 'Gastroenterology',
+  'Neurology', 'Oncology', 'Orthopedics', 'Pediatrics', 'Psychiatry', 'Urology'
 ];
 
-// Enum for qualifications
 const QUALIFICATIONS = [
-  'MBBS',
-  'MD',
-  'MS',
-  'DNB',
-  'DM',
-  'MCh',
-  'FRCS',
-  'PhD',
-  'MPH',
-  'MBA'
+  'MBBS', 'MD', 'MS', 'DNB', 'DM', 'MCh', 'FRCS', 'PhD', 'MPH', 'MBA'
 ];
 
-// Styled component for file upload
+// Styled components
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
   clipPath: 'inset(50%)',
@@ -72,81 +56,43 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-// Styled component for the data grid container - enhanced for better scrolling
 const DataGridContainer = styled(Paper)(({ theme }) => ({
   height: 500,
   width: '100%',
   position: 'relative',
-  overflow: 'visible',
   '& .MuiDataGrid-root': {
     border: 'none',
-    overflowX: 'auto',
-    overflowY: 'auto',
   },
-  '& .MuiDataGrid-cell': {
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  },
-  '& .MuiDataGrid-columnHeaders': {
-    backgroundColor: theme.palette.background.paper,
-    borderBottom: `2px solid ${theme.palette.divider}`,
-  },
-  '& .MuiDataGrid-virtualScroller': {
-    backgroundColor: theme.palette.background.paper,
-    overflowX: 'auto',
-    overflowY: 'auto',
-  },
-  // Enhanced scrollbar styling for better visibility
   '& ::-webkit-scrollbar': {
-    width: '12px',
-    height: '12px',
-    display: 'block',
-  },
-  '& ::-webkit-scrollbar-track': {
-    background: '#f1f1f1',
-    borderRadius: '8px',
+    width: '10px',
+    height: '10px',
   },
   '& ::-webkit-scrollbar-thumb': {
-    background: '#888',
-    borderRadius: '8px',
-    border: '2px solid transparent',
-    backgroundClip: 'padding-box',
-  },
-  '& ::-webkit-scrollbar-thumb:hover': {
-    background: '#555',
-    border: '2px solid transparent',
-    backgroundClip: 'padding-box',
+    backgroundColor: theme.palette.mode === 'dark' ? '#555' : '#888',
+    borderRadius: '5px',
   },
 }));
 
-// Responsive wrapper for the entire page
 const PageWrapper = styled(Box)(({ theme }) => ({
-  padding: '20px',
+  padding: theme.spacing(3),
   [theme.breakpoints.down('sm')]: {
-    padding: '10px',
+    padding: theme.spacing(1),
   },
 }));
 
-// Header with responsive design
 const PageHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
   marginBottom: theme.spacing(3),
-  flexWrap: 'wrap',
-  gap: theme.spacing(2),
   [theme.breakpoints.down('sm')]: {
     flexDirection: 'column',
     alignItems: 'flex-start',
+    gap: theme.spacing(2),
   },
 }));
 
-// Fixed styled component for form inputs to prevent cursor jumping
-const StyledTextField = styled(TextField)({
-  '& .MuiInputBase-input': {
-    overflow: 'visible',
-  },
-});
-
+// Main component
 const StaffPage = () => {
   const dispatch = useDispatch();
   
@@ -155,57 +101,16 @@ const StaffPage = () => {
   const { departments, status: departmentsStatus } = useSelector(state => state.departments || {});
   const { url: uploadedImageUrl, loading: uploadLoading, error: uploadError } = useSelector(state => state.upload || {});
   
-  // Local state
-  const [openDialog, setOpenDialog] = useState(false);
-  const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false);
-  const [staffType, setStaffType] = useState('');
-  const [selectedQualifications, setSelectedQualifications] = useState([]);
-  const [imagePreview, setImagePreview] = useState('');
-  const [editMode, setEditMode] = useState(false);
-  const [currentDoctorId, setCurrentDoctorId] = useState(null);
-  const [doctorToDelete, setDoctorToDelete] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    specialization: '',
-    profilePic: '',
-    isActive: true,
-    experience: '',
-    qualifications: [],
-    department: '',
-    availableSlots: []
-  });
-
-  // Fetch doctors and departments on component mount
-  useEffect(() => {
-    dispatch(fetchAllDoctors());
-    dispatch(fetchDepartments());
-    
-    // Cleanup function to reset upload state when component unmounts
-    return () => {
-      dispatch(resetUploadState());
-    };
-  }, [dispatch]);
-
-  // Update form data when image is successfully uploaded
-  useEffect(() => {
-    if (uploadedImageUrl) {
-      setFormData(prevState => ({
-        ...prevState,
-        profilePic: uploadedImageUrl
-      }));
-    }
-  }, [uploadedImageUrl]);
-
-  const resetFormState = () => {
-    setStaffType('');
-    setSelectedQualifications([]);
-    setImagePreview('');
-    setEditMode(false);
-    setCurrentDoctorId(null);
-    dispatch(resetUploadState());
-    setFormData({
+  // Local state - combined into a single state object to reduce re-renders
+  const [state, setState] = useState({
+    openDialog: false,
+    confirmDeleteDialog: false,
+    staffType: '',
+    imagePreview: '',
+    editMode: false,
+    currentStaffId: null,
+    staffToDelete: null,
+    formData: {
       name: '',
       email: '',
       phone: '',
@@ -216,142 +121,263 @@ const StaffPage = () => {
       qualifications: [],
       department: '',
       availableSlots: []
+    }
+  });
+
+  // Initial data fetch - single useEffect for all initial data
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      await Promise.all([
+        dispatch(fetchAllDoctors()),
+        dispatch(fetchDepartments())
+      ]);
+    };
+    
+    fetchInitialData();
+    
+    return () => {
+      dispatch(resetUploadState());
+    };
+  }, [dispatch]);
+
+  // Handle uploaded image URL changes
+  useEffect(() => {
+    if (uploadedImageUrl) {
+      setState(prev => ({
+        ...prev,
+        formData: {
+          ...prev.formData,
+          profilePic: uploadedImageUrl
+        }
+      }));
+    }
+  }, [uploadedImageUrl]);
+
+  // Use updater functions for state changes to prevent issues with stale state
+  const updateState = (updates) => {
+    setState(prev => ({
+      ...prev,
+      ...updates
+    }));
+  };
+
+  const updateFormData = (updates) => {
+    setState(prev => ({
+      ...prev,
+      formData: {
+        ...prev.formData,
+        ...updates
+      }
+    }));
+  };
+
+  // Form handling functions
+  const resetForm = () => {
+    setState({
+      ...state,
+      staffType: '',
+      imagePreview: '',
+      editMode: false,
+      currentStaffId: null,
+      formData: {
+        name: '',
+        email: '',
+        phone: '',
+        specialization: '',
+        profilePic: '',
+        isActive: true,
+        experience: '',
+        qualifications: [],
+        department: '',
+        availableSlots: []
+      }
     });
+    dispatch(resetUploadState());
   };
 
   const handleOpenDialog = () => {
-    resetFormState();
-    setOpenDialog(true);
+    resetForm();
+    updateState({ openDialog: true });
   };
 
   const handleCloseDialog = () => {
-    resetFormState();
-    setOpenDialog(false);
+    resetForm();
+    updateState({ openDialog: false });
   };
 
-  const handleEditDoctor = (doctor) => {
-    setEditMode(true);
-    setCurrentDoctorId(doctor.id);
-    setStaffType('doctor');
-    setSelectedQualifications(doctor.qualifications || []);
-    setImagePreview(doctor.profilePic || '');
-    
-    setFormData({
-      name: doctor.name || '',
-      email: doctor.email || '',
-      phone: doctor.phone || '',
-      specialization: doctor.specialization || '',
-      profilePic: doctor.profilePic || '',
-      isActive: doctor.isActive ?? true,
-      experience: doctor.experience?.toString() || '',
-      qualifications: doctor.qualifications || [],
-      department: doctor.department?._id || '',
-      availableSlots: doctor.availableSlots || []
+  const handleEditStaff = (staff) => {
+    setState({
+      ...state,
+      editMode: true,
+      currentStaffId: staff.id,
+      staffType: 'doctor', // Set based on staff type
+      imagePreview: staff.profilePic || '',
+      openDialog: true,
+      formData: {
+        name: staff.name || '',
+        email: staff.email || '',
+        phone: staff.phone || '',
+        specialization: staff.specialization || '',
+        profilePic: staff.profilePic || '',
+        isActive: staff.isActive ?? true,
+        experience: staff.experience?.toString() || '',
+        qualifications: staff.qualifications || [],
+        department: staff.department?._id || '',
+        availableSlots: staff.availableSlots || []
+      }
     });
-    
-    setOpenDialog(true);
   };
 
-  const handleDeleteClick = (doctor) => {
-    setDoctorToDelete(doctor);
-    setConfirmDeleteDialog(true);
+  const handleDeleteClick = (staff) => {
+    updateState({
+      staffToDelete: staff,
+      confirmDeleteDialog: true
+    });
   };
 
   const handleDeleteConfirm = async () => {
-    if (doctorToDelete) {
-      await dispatch(deleteDoctor(doctorToDelete.id));
-      setConfirmDeleteDialog(false);
-      setDoctorToDelete(null);
+    if (state.staffToDelete) {
+      await dispatch(deleteDoctor(state.staffToDelete.id));
+      updateState({
+        confirmDeleteDialog: false,
+        staffToDelete: null
+      });
       dispatch(fetchAllDoctors());
     }
   };
 
-  const handleDeleteCancel = () => {
-    setConfirmDeleteDialog(false);
-    setDoctorToDelete(null);
+  // Input change handlers - use dedicated functions for different form field types
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    updateFormData({ [name]: value });
   };
 
-  const handleStaffTypeChange = (event) => {
-    setStaffType(event.target.value);
+  const handleQualificationsChange = (e) => {
+    const { value } = e.target;
+    updateFormData({ qualifications: value });
   };
 
-  const handleFormChange = (event) => {
-    const { name, value } = event.target;
-    // Keep focus in the field by using a controlled component approach
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
-
-  const handleQualificationsChange = (event) => {
-    const { value } = event.target;
-    setSelectedQualifications(value);
-    setFormData(prevState => ({
-      ...prevState,
-      qualifications: value
-    }));
-  };
-
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
     if (file) {
-      setImagePreview(URL.createObjectURL(file));
-      // Upload the file to server using Redux action
+      updateState({ imagePreview: URL.createObjectURL(file) });
       dispatch(uploadFile(file));
     }
   };
 
+  const handleStaffTypeChange = (e) => {
+    updateState({ staffType: e.target.value });
+  };
+
+  // Form submission
   const handleSubmit = async () => {
     try {
-      // Make sure experience is a number
       const submissionData = {
-        ...formData,
-        experience: Number(formData.experience)
+        ...state.formData,
+        experience: Number(state.formData.experience) || 0
       };
 
-      if (staffType === 'doctor') {
-        if (editMode && currentDoctorId) {
-          await dispatch(updateDoctor({ id: currentDoctorId, doctorData: submissionData })).unwrap();
+      // Determine which action to dispatch based on staff type and mode
+      if (state.staffType === 'doctor') {
+        if (state.editMode) {
+          await dispatch(updateDoctor({
+            id: state.currentStaffId,
+            doctorData: submissionData
+          }));
         } else {
-          await dispatch(createDoctor(submissionData)).unwrap();
+          await dispatch(createDoctor(submissionData));
         }
-        handleCloseDialog();
         dispatch(fetchAllDoctors());
+      } else if (state.staffType === 'nurse') {
+        if (state.editMode) {
+          await dispatch(updateNurse({
+            id: state.currentStaffId,
+            nurseData: submissionData
+          }));
+        } else {
+          await dispatch(createNurse(submissionData));
+        }
+        dispatch(fetchAllNurses());
+      } else if (state.staffType === 'pharmacist') {
+        if (state.editMode) {
+          await dispatch(updatePharmacist({
+            id: state.currentStaffId,
+            pharmacistData: submissionData
+          }));
+        } else {
+          await dispatch(createPharmacist(submissionData));
+        }
+        dispatch(fetchAllPharmacists());
       }
-      // Add other staff types when they're implemented
+
+      handleCloseDialog();
     } catch (error) {
-      console.error('Failed to create/update staff member:', error);
+      console.error('Failed to save staff member:', error);
     }
   };
 
+  // Validation
   const isFormValid = () => {
-    // Check if experience is a valid number if provided
-    const experienceValid = !formData.experience || !isNaN(Number(formData.experience));
-
-    return formData.name && 
-           formData.email && 
-           formData.phone && 
-           formData.specialization && 
-           formData.department && 
-           experienceValid;
+    const { name, email, phone, specialization, department, experience } = state.formData;
+    const experienceValid = !experience || !isNaN(Number(experience));
+    return name && email && phone && specialization && department && experienceValid;
   };
 
-  // Define the action column with edit and delete buttons
-  const actionColumn = {
-    field: 'actions',
-    headerName: 'Actions',
-    width: 150,
-    sortable: false,
-    disableClickEventBubbling: true,
-    renderCell: (params) => {
-      return (
+  // DataGrid columns
+  const columns = [
+    { field: 'name', headerName: 'Name', flex: 1, minWidth: 150 },
+    { field: 'email', headerName: 'Email', flex: 1, minWidth: 200 },
+    { field: 'phone', headerName: 'Phone', width: 150 },
+    { field: 'specialization', headerName: 'Specialization', flex: 1, minWidth: 150 },
+    { 
+      field: 'isActive', 
+      headerName: 'Status', 
+      width: 100,
+      renderCell: (params) => params.value ? 'Active' : 'Inactive'
+    },
+    { field: 'experience', headerName: 'Experience', width: 120 },
+    { 
+      field: 'qualifications', 
+      headerName: 'Qualifications', 
+      flex: 1,
+      minWidth: 200,
+      renderCell: (params) => (params.value || []).join(', ')
+    },
+// Modified department column valueGetter function - this is the only change needed
+{ 
+  field: 'department', 
+  headerName: 'Department', 
+  flex: 1,
+  minWidth: 150,
+  // More robust valueGetter to handle all undefined cases
+  valueGetter: (params) => {
+    try {
+      // Make sure params and params.row exist before attempting to access department
+      if (!params || !params.row) return 'N/A';
+      
+      // Check if department exists and has a name property
+      const department = params.row.department;
+      return department && typeof department === 'object' && department.name 
+        ? department.name 
+        : 'N/A';
+    } catch (error) {
+      console.error('Error getting department value:', error);
+      return 'N/A';
+    }
+  }
+},
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 120,
+      sortable: false,
+      renderCell: (params) => (
         <Box>
           <Tooltip title="Edit">
             <IconButton 
               color="primary" 
               size="small"
-              onClick={() => handleEditDoctor(params.row)}
+              onClick={() => handleEditStaff(params.row)}
             >
               <EditIcon />
             </IconButton>
@@ -366,241 +392,15 @@ const StaffPage = () => {
             </IconButton>
           </Tooltip>
         </Box>
-      );
+      )
     }
-  };
-
-  // Combine the original columns with the action column
-  const columns = [
-    { field: 'name', headerName: 'Name', width: 150, flex: 1 },
-    { field: 'email', headerName: 'Email', width: 200, flex: 1 },
-    { field: 'phone', headerName: 'Phone', width: 150 },
-    { field: 'specialization', headerName: 'Specialization', width: 150, flex: 1 },
-    { 
-      field: 'isActive', 
-      headerName: 'Active', 
-      width: 100,
-      renderCell: (params) => params.value ? 'Yes' : 'No' 
-    },
-    { field: 'experience', headerName: 'Experience', width: 120 },
-    { 
-      field: 'qualifications', 
-      headerName: 'Qualifications', 
-      width: 200,
-      flex: 1,
-      renderCell: (params) => params.value ? params.value.join(', ') : '' 
-    },
-    { 
-      field: 'department', 
-      headerName: 'Department', 
-      width: 150,
-      flex: 1,
-      valueGetter: (params) => {
-        try {
-          return params.row.department?.name || 'No Department';
-        } catch (error) {
-          return 'No Department';
-        }
-      }
-    },
-    actionColumn // Add the action column
   ];
 
-  // Map doctors to a format suitable for DataGrid
+  // Prepare rows for DataGrid
   const rows = doctors?.map(doctor => ({
-    id: doctor._id, // Use _id as id
-    ...doctor,
+    id: doctor._id,
+    ...doctor
   })) || [];
-
-  // Form component that's reused for all staff types
-  const StaffForm = () => (
-    <form>
-      <StyledTextField
-        name="name"
-        label="Name"
-        value={formData.name}
-        onChange={handleFormChange}
-        fullWidth
-        margin="normal"
-        required
-        autoComplete="off"
-      />
-      <StyledTextField
-        name="email"
-        label="Email"
-        value={formData.email}
-        onChange={handleFormChange}
-        fullWidth
-        margin="normal"
-        required
-        type="email"
-        autoComplete="off"
-      />
-      <StyledTextField
-        name="phone"
-        label="Phone"
-        value={formData.phone}
-        onChange={handleFormChange}
-        fullWidth
-        margin="normal"
-        required
-        autoComplete="off"
-      />
-      
-      {/* Specialization Dropdown */}
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="specialization-label">Specialization</InputLabel>
-        <Select
-          labelId="specialization-label"
-          name="specialization"
-          value={formData.specialization}
-          onChange={handleFormChange}
-          label="Specialization"
-          required
-          MenuProps={{
-            PaperProps: {
-              style: {
-                maxHeight: 300
-              }
-            }
-          }}
-        >
-          {SPECIALIZATIONS.map((spec) => (
-            <MenuItem key={spec} value={spec}>
-              {spec}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      
-      {/* Qualifications Multi-select */}
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="qualifications-label">Qualifications</InputLabel>
-        <Select
-          labelId="qualifications-label"
-          name="qualifications"
-          multiple
-          value={selectedQualifications}
-          onChange={handleQualificationsChange}
-          input={<OutlinedInput label="Qualifications" />}
-          renderValue={(selected) => (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {selected.map((value) => (
-                <Chip key={value} label={value} />
-              ))}
-            </Box>
-          )}
-          MenuProps={{
-            PaperProps: {
-              style: {
-                maxHeight: 300
-              }
-            }
-          }}
-        >
-          {QUALIFICATIONS.map((qual) => (
-            <MenuItem key={qual} value={qual}>
-              <Checkbox checked={selectedQualifications.indexOf(qual) > -1} />
-              <ListItemText primary={qual} />
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      
-      {/* Department Dropdown */}
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="department-label">Department</InputLabel>
-        <Select
-          labelId="department-label"
-          name="department"
-          value={formData.department}
-          onChange={handleFormChange}
-          label="Department"
-          required
-          MenuProps={{
-            PaperProps: {
-              style: {
-                maxHeight: 300
-              }
-            }
-          }}
-        >
-          {departmentsStatus === 'loading' ? (
-            <MenuItem disabled>Loading departments...</MenuItem>
-          ) : departments?.length > 0 ? (
-            departments.map((dept) => (
-              <MenuItem key={dept._id} value={dept._id}>
-                {dept.name}
-              </MenuItem>
-            ))
-          ) : (
-            <MenuItem disabled>No departments available</MenuItem>
-          )}
-        </Select>
-      </FormControl>
-      
-      <StyledTextField
-        name="experience"
-        label="Experience (years)"
-        type="number"
-        value={formData.experience}
-        onChange={handleFormChange}
-        fullWidth
-        margin="normal"
-        InputProps={{
-          inputProps: { min: 0 }
-        }}
-        helperText="Enter number of years only"
-        autoComplete="off"
-      />
-      
-      {/* Image Upload */}
-      <Box sx={{ mt: 2, mb: 2 }}>
-        <Button
-          component="label"
-          variant="contained"
-          startIcon={<CloudUploadIcon />}
-          disabled={uploadLoading}
-        >
-          {uploadLoading ? 'Uploading...' : 'Upload Profile Picture'}
-          <VisuallyHiddenInput type="file" onChange={handleImageChange} accept="image/*" />
-        </Button>
-        
-        {uploadLoading && (
-          <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-            <CircularProgress size={24} />
-          </Box>
-        )}
-        
-        {uploadError && (
-          <Alert severity="error" sx={{ mt: 1 }}>
-            Error uploading image. Please try again.
-          </Alert>
-        )}
-        
-        {uploadedImageUrl && !uploadLoading && (
-          <Alert severity="success" sx={{ mt: 1 }}>
-            Image uploaded successfully!
-          </Alert>
-        )}
-        
-        {imagePreview && (
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-            <img 
-              src={imagePreview} 
-              alt="Preview" 
-              style={{ 
-                maxWidth: '100%', 
-                maxHeight: '200px', 
-                objectFit: 'cover',
-                borderRadius: '4px'
-              }} 
-            />
-          </Box>
-        )}
-      </Box>
-    </form>
-  );
 
   return (
     <PageWrapper>
@@ -616,20 +416,26 @@ const StaffPage = () => {
         </Button>
       </PageHeader>
 
-      {/* Main Dialog for Adding/Editing Staff */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{editMode ? 'Edit Staff Member' : 'Add New Staff Member'}</DialogTitle>
+      {/* Main Staff Form Dialog */}
+      <Dialog 
+        open={state.openDialog} 
+        onClose={handleCloseDialog} 
+        maxWidth="md" 
+        fullWidth
+      >
+        <DialogTitle>
+          {state.editMode ? 'Edit Staff Member' : 'Add New Staff Member'}
+        </DialogTitle>
         <DialogContent>
-          {/* Always show the staff type selection, regardless of staffType value */}
           <FormControl fullWidth margin="normal">
             <InputLabel id="staff-type-label">Staff Type</InputLabel>
             <Select
               labelId="staff-type-label"
-              value={staffType}
+              value={state.staffType}
               onChange={handleStaffTypeChange}
               label="Staff Type"
               required
-              disabled={editMode}
+              disabled={state.editMode}
             >
               <MenuItem value="doctor">Doctor</MenuItem>
               <MenuItem value="nurse">Nurse</MenuItem>
@@ -637,58 +443,211 @@ const StaffPage = () => {
             </Select>
           </FormControl>
 
-          {staffType && <StaffForm />}
+          {state.staffType && (
+            <Box component="form" noValidate>
+              <TextField
+                name="name"
+                label="Name"
+                value={state.formData.name}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                required
+                autoComplete="off"
+              />
+              <TextField
+                name="email"
+                label="Email"
+                value={state.formData.email}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                required
+                type="email"
+                autoComplete="off"
+              />
+              <TextField
+                name="phone"
+                label="Phone"
+                value={state.formData.phone}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                required
+                autoComplete="off"
+              />
+              
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Specialization</InputLabel>
+                <Select
+                  name="specialization"
+                  value={state.formData.specialization}
+                  onChange={handleInputChange}
+                  label="Specialization"
+                  required
+                >
+                  {SPECIALIZATIONS.map((spec) => (
+                    <MenuItem key={spec} value={spec}>
+                      {spec}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Qualifications</InputLabel>
+                <Select
+                  name="qualifications"
+                  multiple
+                  value={state.formData.qualifications}
+                  onChange={handleQualificationsChange}
+                  input={<OutlinedInput label="Qualifications" />}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value) => (
+                        <Chip key={value} label={value} />
+                      ))}
+                    </Box>
+                  )}
+                >
+                  {QUALIFICATIONS.map((qual) => (
+                    <MenuItem key={qual} value={qual}>
+                      <Checkbox checked={(state.formData.qualifications || []).indexOf(qual) > -1} />
+                      <ListItemText primary={qual} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Department</InputLabel>
+                <Select
+                  name="department"
+                  value={state.formData.department}
+                  onChange={handleInputChange}
+                  label="Department"
+                  required
+                >
+                  {departmentsStatus === 'loading' ? (
+                    <MenuItem disabled>Loading departments...</MenuItem>
+                  ) : departments?.length > 0 ? (
+                    departments.map((dept) => (
+                      <MenuItem key={dept._id} value={dept._id}>
+                        {dept.name}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>No departments available</MenuItem>
+                  )}
+                </Select>
+              </FormControl>
+              
+              <TextField
+                name="experience"
+                label="Experience (years)"
+                type="number"
+                value={state.formData.experience}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                InputProps={{
+                  inputProps: { min: 0 }
+                }}
+                helperText="Enter number of years"
+                autoComplete="off"
+              />
+              
+              <Box sx={{ mt: 3, mb: 2 }}>
+                <Button
+                  component="label"
+                  variant="contained"
+                  startIcon={<CloudUploadIcon />}
+                  disabled={uploadLoading}
+                >
+                  {uploadLoading ? 'Uploading...' : 'Upload Profile Picture'}
+                  <VisuallyHiddenInput 
+                    type="file" 
+                    onChange={handleImageChange} 
+                    accept="image/*" 
+                  />
+                </Button>
+                
+                {uploadLoading && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                )}
+                
+                {uploadError && (
+                  <Alert severity="error" sx={{ mt: 1 }}>
+                    Error uploading image. Please try again.
+                  </Alert>
+                )}
+                
+                {state.imagePreview && (
+                  <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                    <img 
+                      src={state.imagePreview} 
+                      alt="Profile preview" 
+                      style={{ 
+                        maxWidth: '100%', 
+                        maxHeight: '200px', 
+                        objectFit: 'cover',
+                        borderRadius: '4px'
+                      }} 
+                    />
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} color="secondary">
+          <Button onClick={handleCloseDialog}>
             Cancel
           </Button>
           <Button 
             onClick={handleSubmit} 
             color="primary"
-            disabled={!staffType || uploadLoading || !isFormValid()}
+            variant="contained"
+            disabled={!state.staffType || uploadLoading || !isFormValid()}
           >
-            {uploadLoading ? 'Processing...' : editMode ? 'Update' : 'Add'}
+            {uploadLoading ? 'Processing...' : state.editMode ? 'Update' : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Confirmation Dialog for Delete */}
-      <Dialog open={confirmDeleteDialog} onClose={handleDeleteCancel}>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={state.confirmDeleteDialog} onClose={() => updateState({ confirmDeleteDialog: false })}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
-          <p>Are you sure you want to delete {doctorToDelete?.name}?</p>
+          <p>Are you sure you want to delete {state.staffToDelete?.name}?</p>
           <p>This action cannot be undone.</p>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteCancel} color="primary">
+          <Button onClick={() => updateState({ confirmDeleteDialog: false })}>
             Cancel
           </Button>
-          <Button onClick={handleDeleteConfirm} color="error">
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Enhanced DataGrid with improved scrolling */}
-      <DataGridContainer elevation={2}>
+      {/* Staff Data Grid */}
+      <DataGridContainer elevation={3}>
         <DataGrid
           rows={rows}
           columns={columns}
           pagination
           pageSize={10}
-          rowsPerPageOptions={[5, 10, 20, 50]}
           loading={doctorsLoading}
           disableSelectionOnClick
           autoHeight
           sx={{
             minHeight: 400,
-            width: '100%',
             '& .MuiDataGrid-cell:focus': {
               outline: 'none',
-            },
-            '& .MuiDataGrid-virtualScroller': {
-              overflow: 'auto',
             },
           }}
           initialState={{
@@ -696,9 +655,6 @@ const StaffPage = () => {
               pageSize: 10,
             },
           }}
-          scrollbarSize={12}
-          disableColumnFilter={false}
-          disableColumnMenu={false}
         />
       </DataGridContainer>
     </PageWrapper>

@@ -1,3 +1,4 @@
+// patientSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import BASE_URL from "./baseurl";
@@ -15,6 +16,7 @@ const getAuthToken = () => {
 // Initial state
 const initialState = {
   patients: [],
+  allPatientPayloads: [], // New array to store all patient payloads
   currentPatient: null,
   pagination: {
     total: 0,
@@ -40,7 +42,10 @@ export const fetchPatients = createAsyncThunk(
       if (sortBy) queryString += `&sortBy=${sortBy}&sortOrder=${sortOrder || 'desc'}`;
       
       const response = await axios.get(`${BASE_URL}/patients${queryString}`, getAuthToken());
-      return response.data.data;
+      console.log("Response data:", response.data);
+      return {patients:response.data.message.patients,
+      pagination:response.data.message.pagination,
+      }
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: error.message });
     }
@@ -105,6 +110,10 @@ const patientSlice = createSlice({
     },
     resetPatientError: (state) => {
       state.error = null;
+    },
+    // New reducer to add payload to allPatientPayloads
+    addPatientPayload: (state, action) => {
+      state.allPatientPayloads.push(action.payload);
     }
   },
   extraReducers: (builder) => {
@@ -113,10 +122,19 @@ const patientSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
+      // In your fetchPatients.fulfilled case
       .addCase(fetchPatients.fulfilled, (state, action) => {
         state.loading = false;
-        state.patients = action.payload.patients;
-        state.pagination = action.payload.pagination;
+        // Handle both direct array and nested response structures
+        state.patients = Array.isArray(action.payload) 
+          ? action.payload 
+          : action.payload?.success?.patients || action.payload?.patients || [];
+        state.pagination = action.payload?.success?.pagination || action.payload?.pagination || {
+          total: state.patients.length,
+          page: 1,
+          limit: 10,
+          totalPages: 1
+        };
       })
       .addCase(fetchPatients.rejected, (state, action) => {
         state.loading = false;
@@ -141,6 +159,7 @@ const patientSlice = createSlice({
       .addCase(createPatient.fulfilled, (state, action) => {
         state.loading = false;
         state.patients.unshift(action.payload);
+        state.allPatientPayloads.push(action.payload); // Add to allPatientPayloads
         state.pagination.total += 1;
       })
       .addCase(createPatient.rejected, (state, action) => {
@@ -157,6 +176,13 @@ const patientSlice = createSlice({
         if (index !== -1) {
           state.patients[index] = action.payload;
         }
+        // Update in allPatientPayloads if exists
+        const payloadIndex = state.allPatientPayloads.findIndex(p => p._id === action.payload._id);
+        if (payloadIndex !== -1) {
+          state.allPatientPayloads[payloadIndex] = action.payload;
+        } else {
+          state.allPatientPayloads.push(action.payload);
+        }
         if (state.currentPatient && state.currentPatient._id === action.payload._id) {
           state.currentPatient = action.payload;
         }
@@ -172,6 +198,8 @@ const patientSlice = createSlice({
       .addCase(deletePatient.fulfilled, (state, action) => {
         state.loading = false;
         state.patients = state.patients.filter(patient => patient._id !== action.payload);
+        // Remove from allPatientPayloads
+        state.allPatientPayloads = state.allPatientPayloads.filter(p => p._id !== action.payload);
         state.pagination.total -= 1;
         if (state.currentPatient && state.currentPatient._id === action.payload) {
           state.currentPatient = null;
@@ -184,5 +212,5 @@ const patientSlice = createSlice({
   }
 });
 
-export const { clearCurrentPatient, resetPatientError } = patientSlice.actions;
+export const { clearCurrentPatient, resetPatientError, addPatientPayload } = patientSlice.actions;
 export default patientSlice.reducer;
