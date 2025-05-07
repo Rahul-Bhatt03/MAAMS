@@ -1,6 +1,6 @@
-import Payment from "../models/Payment";
-import Order from "../models/Order";
- import {verifyEsewaPayment,verifyKhaltiPayment,verifyStripePAyment} from "../utils/paymentGateways";
+import Payment from "../models/Payment.js";
+import Order from "../models/Order.js";
+ import {verifyEsewaPayment,verifyKhaltiPayment,verifyStripePayment} from "../utils/paymentGateway.js";
 
  export const verifyPayment=async(req,res)=>{
     try {

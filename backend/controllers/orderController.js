@@ -2,7 +2,7 @@
 import Order from '../models/Order.js';
 import Medicine from '../models/Medicine.js';
 import Payment from '../models/Payment.js';
-import { initiatePayment } from '../utils/paymentGateways.js';
+import { initiatePayment } from '../utils/paymentGateway.js';
 
 // Create a new order
 export const createOrder = async (req, res) => {

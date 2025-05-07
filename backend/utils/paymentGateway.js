@@ -1,8 +1,8 @@
 import axios from 'axios'
-import Payment from '../models/Payment'
+import Payment from '../models/Payment.js'
 import stripePackage from 'stripe'
-import { Transaction } from 'mongodb'
-import { connection } from 'mongoose'
+// import { Transaction } from 'mongodb'
+// import { connection } from 'mongoose'
 const stripe=stripePackage(process.env.STRIPE_SECRET_KEY)
 
 //initiate payment based on method
@@ -189,7 +189,7 @@ const verifyKhaltiPayment=async(data)=>{
 }
 
 // verify stripepayment 
-const verifyStripePAyment=async(data)=>{
+const verifyStripePayment=async(data)=>{
     try {
         const {paymentIntentId}=data;
         const paymentIntent=await stripe.paymentIntents.retrieve(paymentIntentId);
@@ -261,5 +261,5 @@ return results;
 }
 
 export {
-    initiatePayment,verifyEsewaPayment,verufyKhaltiPayment,verifyStripePAyment,testPaymentGateways
+    initiatePayment,verifyEsewaPayment,verifyKhaltiPayment,verifyStripePayment,testPaymentGateways
 }

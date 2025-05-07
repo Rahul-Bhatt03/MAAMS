@@ -4,7 +4,7 @@ import {
   getPaymentStatus,
   processRefund
 } from '../controllers/paymentController.js';
-import { protect } from '../middlewares/authMiddleware.js'; // handles authentication & role check
+import { protect } from '../middleware/authMiddleware.js'; // handles authentication & role check
 import { admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
