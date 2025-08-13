@@ -230,10 +230,11 @@ const AppointmentBookingForm = () => {
   };
 
   const filterPastDates = (date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date >= today;
-  };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date < today; // return true only for past dates (so those are disabled)
+};
+
   
   const getDepartmentId = (dept) => {
     if (!dept) return null;
