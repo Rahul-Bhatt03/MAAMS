@@ -67,7 +67,8 @@ const AdvancedHospitalFooter = () => {
         },
       }}
     >
-      <Container maxWidth="lg">
+     <Container > </Container>
+     <Container maxWidth="lg">
         <Grid
           container
           spacing={4}
