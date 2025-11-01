@@ -11,15 +11,13 @@ import { fetchAllDoctors } from "../../../features/doctorSlice";
 import { uploadFile } from "../../../features/uploadSlice";
 import { getAllServices } from "../../../features/serviceSlice";
 
+// Components
+import DepartmentCard from "./DepartmentCard"; // Adjust the import path as needed
+
 // MUI Components
 import {
   Box,
   Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
-  Chip,
   Container,
   Dialog,
   DialogActions,
@@ -29,7 +27,6 @@ import {
   FormControl,
   FormHelperText,
   Grid,
-  IconButton,
   InputAdornment,
   InputLabel,
   MenuItem,
@@ -42,17 +39,16 @@ import {
   Snackbar,
   Alert,
   useMediaQuery,
+  IconButton,
 } from "@mui/material";
 
 // MUI Icons
 import {
   Add as AddIcon,
-  Delete as DeleteIcon,
   Search as SearchIcon,
   Close as CloseIcon,
   CloudUpload as CloudUploadIcon,
   AccessTime as AccessTimeIcon,
-  Edit as EditIcon,
 } from "@mui/icons-material";
 
 import { useTheme } from "@mui/material/styles";
@@ -94,13 +90,12 @@ const DepartmentsCrud = () => {
   const doctorsState = useSelector((state) => state.doctors);
   const doctors = doctorsState?.items || [];
   
-    // Get services directly from the root state to avoid the undefined error
-    const servicesFromState = useSelector((state) => state.services);
-    // Handle any possible shape of the services state
-    const services = servicesFromState?.services || 
-                     servicesFromState?.items || 
-                     (Array.isArray(servicesFromState) ? servicesFromState : []);
-  
+  // Get services directly from the root state to avoid the undefined error
+  const servicesFromState = useSelector((state) => state.services);
+  const services = servicesFromState?.services || 
+                   servicesFromState?.items || 
+                   (Array.isArray(servicesFromState) ? servicesFromState : []);
+
   const {
     loading: uploadLoading,
     url: uploadedFileUrl,
@@ -114,18 +109,9 @@ const DepartmentsCrud = () => {
   // Load departments, doctors, and services on component mount
   useEffect(() => {
     dispatch(fetchDepartments());
-    // if (isAdmin) {
-      dispatch(fetchAllDoctors());
-      dispatch(getAllServices());
-    // }
-  }, [dispatch, isAdmin]);
-
-  // Debug logging for doctors and services
-  useEffect(() => {
-    console.log("Doctors from Redux:", doctors);
-    console.log("Full services state:", servicesFromState);
-    console.log("Services array:", services);
-  }, [doctors,servicesFromState, ,services]);
+    dispatch(fetchAllDoctors());
+    dispatch(getAllServices());
+  }, [dispatch]);
 
   // Update formData when file is uploaded
   useEffect(() => {
@@ -272,15 +258,8 @@ const DepartmentsCrud = () => {
     }
   };
 
-  // Navigate to department detail page
-  const handleDepartmentClick = (id) => {
-    navigate(`/departments/${id}`);
-  };
-
   // Handle department deletion
-  const handleDeleteDepartment = (e, id) => {
-    e.stopPropagation();
-    // Confirmation dialog handled by MUI Dialog component
+  const handleDeleteDepartment = (id) => {
     if (window.confirm("Are you sure you want to delete this department?")) {
       dispatch(deleteDepartment(id)).then((result) => {
         if (!result.error) {
@@ -301,8 +280,7 @@ const DepartmentsCrud = () => {
   };
 
   // Handle department edit
-  const handleEditDepartment = (e, department) => {
-    e.stopPropagation();
+  const handleEditDepartment = (department) => {
     setEditMode(true);
     setSelectedDepartmentId(department._id);
   
@@ -358,7 +336,7 @@ const DepartmentsCrud = () => {
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="100%" sx={{ py: 4, px: 3 }}>
       {/* Header with filter and add button */}
       <Box
         sx={{
@@ -377,9 +355,10 @@ const DepartmentsCrud = () => {
         <Box
           sx={{
             display: "flex",
-            gap: 2,
+            gap: 4,
             width: isMobile ? "100%" : "auto",
             flexDirection: isMobile ? "column" : "row",
+            
           }}
         >
           <TextField
@@ -430,106 +409,15 @@ const DepartmentsCrud = () => {
       )}
 
       {/* Department Cards */}
-      <Grid container spacing={3}>
+      <Grid container spacing={3} >
         {filteredDepartments.map((department) => (
           <Grid item xs={12} sm={6} md={4} key={department._id}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                transition: "transform 0.3s, box-shadow 0.3s",
-                "&:hover": {
-                  transform: "translateY(-5px)",
-                  boxShadow: 6,
-                },
-              }}
-            >
-              <CardActionArea
-                onClick={() => handleDepartmentClick(department._id)}
-              >
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={
-                    department.imageUrl || department.image ||
-                    "https://via.placeholder.com/300x140?text=Department"
-                  }
-                  alt={department.name}
-                />
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <Typography gutterBottom variant="h5" component="div">
-                      {department.name}
-                    </Typography>
-                    {isAdmin && (
-                      <Box>
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={(e) => handleEditDepartment(e, department)}
-                          sx={{ mr: 1 }}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={(e) =>
-                            handleDeleteDepartment(e, department._id)
-                          }
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    )}
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                  >
-                    {department.description.length > 100
-                      ? `${department.description.substring(0, 100)}...`
-                      : department.description}
-                  </Typography>
-                  <Typography variant="body2" color="text.primary">
-                    <strong>Hours:</strong> {department.timings}
-                  </Typography>
-                  {department.services && department.services.length > 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        <strong>Services:</strong>
-                      </Typography>
-                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                        {department.services
-                          .slice(0, 3)
-                          .map((service, index) => (
-                            <Chip 
-                              key={index} 
-                              label={typeof service === 'object' ? service.name : service} 
-                              size="small" 
-                            />
-                          ))}
-                        {department.services.length > 3 && (
-                          <Chip
-                            label={`+${department.services.length - 3} more`}
-                            size="small"
-                            variant="outlined"
-                          />
-                        )}
-                      </Box>
-                    </Box>
-                  )}
-                </CardContent>
-              </CardActionArea>
-            </Card>
+            <DepartmentCard
+              department={department}
+              onEdit={handleEditDepartment}
+              onDelete={handleDeleteDepartment}
+              showAdminActions={true}
+            />
           </Grid>
         ))}
       </Grid>
@@ -730,41 +618,41 @@ const DepartmentsCrud = () => {
               </Box>
             </Grid>
 
-         {/* Services - Fixed Version */}
-         <FormControl fullWidth margin="normal">
-  <InputLabel id="services-select-label">Services</InputLabel>
-  <Select
-    labelId="services-select-label"
-    id="services-select"
-    multiple
-    value={formData.services}
-    onChange={handleServiceChange}
-    input={<OutlinedInput label="Services" />}
-    renderValue={(selected) => (
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-        {selected.map((value) => (
-          <Chip key={value} label={value} size="small" />
-        ))}
-      </Box>
-    )}
-  >
-    {Array.isArray(services) && services.length > 0 ? (
-      services.map((service) => (
-        <MenuItem key={service._id} value={service.name}>
-          {service.name}
-        </MenuItem>
-      ))
-    ) : (
-      <MenuItem disabled>No services available</MenuItem>
-    )}
-  </Select>
-  <FormHelperText>
-    {Array.isArray(services) && services.length > 0
-      ? "Select services for this department. The service names will be saved."
-      : "No services available. Please add services first."
-    }
-  </FormHelperText>
-</FormControl>
+            {/* Services */}
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="services-select-label">Services</InputLabel>
+              <Select
+                labelId="services-select-label"
+                id="services-select"
+                multiple
+                value={formData.services}
+                onChange={handleServiceChange}
+                input={<OutlinedInput label="Services" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip key={value} label={value} size="small" />
+                    ))}
+                  </Box>
+                )}
+              >
+                {Array.isArray(services) && services.length > 0 ? (
+                  services.map((service) => (
+                    <MenuItem key={service._id} value={service.name}>
+                      {service.name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No services available</MenuItem>
+                )}
+              </Select>
+              <FormHelperText>
+                {Array.isArray(services) && services.length > 0
+                  ? "Select services for this department. The service names will be saved."
+                  : "No services available. Please add services first."
+                }
+              </FormHelperText>
+            </FormControl>
 
             {/* Doctors */}
             <Grid item xs={12}>
