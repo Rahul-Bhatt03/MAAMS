@@ -6,16 +6,11 @@ import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
-// Public routes
-// get wala bata /search remove gareko xu hai 
 router.get('/', medicineController.search);
 router.get('/:id', medicineController.getMedicine);
-
-// Protected routes (pharmacist/admin only)
 router.post(
   '/', 
-  // protect, 
-//   pharmacistMiddleware, 
+  protect, 
   upload.single('image'), 
   medicineController.addMedicine
 );
@@ -23,7 +18,6 @@ router.post(
 router.put(
   '/:id', 
   protect, 
-//   pharmacistMiddleware, 
   upload.single('image'), 
   medicineController.updateMedicine
 );
@@ -31,7 +25,6 @@ router.put(
 router.delete(
   '/:id', 
   protect, 
-//   pharmacistMiddleware, 
   medicineController.deleteMedicine
 );
 
