@@ -50,8 +50,9 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import ClearIcon from "@mui/icons-material/Clear";
+import MedicalInformationIcon from "@mui/icons-material/MedicalInformation";
+
 import { debounce } from "lodash";
-import { CalendarIcon } from "@mui/x-date-pickers";
 
 // Custom styled components
 const Search = styled("div")(({ theme }) => ({
@@ -271,7 +272,8 @@ const HospitalAppBar = () => {
     { name: "Departments", path: "/departments", icon: <LocalHospitalIcon /> },
     { name: "Research", path: "/research", icon: <ScienceIcon /> },
     { name: "Careers", path: "/careers", icon: <WorkIcon /> },
-    { name: "Calendar", path: "/calendar", icon: <CalendarIcon /> },
+   { name: "Medicine", path: "/medicine", icon: <MedicalInformationIcon /> },
+
   ];
 
   // List of profile menu items
