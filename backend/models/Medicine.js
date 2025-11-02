@@ -21,7 +21,7 @@ const medicineSchema = new mongoose.Schema({
     required: true,
   },
   manufacturer: String,
-  price: { type: Number, required: true },
+  price: { type: Number, required: true ,index:true},
   requiresPrescription: { type: Boolean, required: true },
   stock: { type: Number, required: true, min: 0 },
   imagePublicId: String, // For Cloudinary image management
@@ -40,6 +40,7 @@ const medicineSchema = new mongoose.Schema({
     ],
     index: true,
   },
+  isActive:Boolean,
   expiryDate: Date,
   createdAt: { type: Date, default: Date.now },
   updatedAt: Date,
@@ -50,6 +51,7 @@ medicineSchema.index({
   name: "text",
   genericName: "text",
   description: "text",
+  price:"Number"
 });
 
 //pre-save middleware to update the updatedAt field
