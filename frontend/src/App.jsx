@@ -19,10 +19,13 @@ import DepartmentsCrud from "./components/departments/DepartmentsCrud";
 import Research from "./components/research/Research";
 import AppointmentBookingForm from "./components/appointments/AppointmentBookingForm";
 import Medicinecard from "./components/Medic/Medicinecard"; 
+import Cart from "./components/Medic/Cart";
+
 const App = () => {
   // console.log(process.env);
   console.log("App component rendering"); // Check if the App component is rendered
   return (
+   
     <Router>
       <Routes>
         <Route path="/signup" element={<SignupPage />} />
@@ -81,10 +84,12 @@ const App = () => {
           <Route path="/appointments" element={<AppointmentBookingForm />} />
           <Route path="/"element={<Home />} />
           <Route path="/medicine" element={<Medicinecard />} />
+          <Route path="/cart" element={<Cart />} />
         </Route>
 
       </Routes>
     </Router>
+    
   );
 };
 

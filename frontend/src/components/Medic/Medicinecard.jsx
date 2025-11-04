@@ -1,242 +1,303 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  Box,
-  Grid,
   Card,
-  CardMedia,
   CardContent,
   CardActions,
   Typography,
   Button,
-  Chip,
+  Grid,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  Box,
   Divider,
-  Snackbar,
-  Alert,
+  TextField,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  Paper,
 } from "@mui/material";
-import { Medication, Vaccines, MedicalServices, Info, AddShoppingCart } from "@mui/icons-material";
 import { motion } from "framer-motion";
+import { Info, AddShoppingCart, Medication, Search } from "@mui/icons-material";
 
-const categoryColors = {
-  Antibiotics: "error",
-  Painkillers: "warning",
-  Vitamins: "success",
-  Cardiovascular: "primary",
-  Diabetes: "secondary",
-  Respiratory: "info",
-  Gastrointestinal: "default",
-  Dermatology: "success",
-};
 
 const medicines = [
   {
     id: 1,
-    name: "Paracetamol",
+    name: "Amoxicillin",
     strength: "500 mg",
-    form: "Tablet",
-    category: "Painkillers",
+    form: "Capsule",
+    category: "Antibiotic",
     manufacturer: "ABC Pharma",
-    expiry: "2025-12-31",
-    description: "Used for fever and pain relief.",
-    price: 12.5,
-    stock: 120,
-    icon: <Medication sx={{ fontSize: 60, color: "#009688" }} />,
+    expiry: "2026-05-30",
+    price: 120,
+    stock: 50,
+    description: "Used to treat bacterial infections.",
   },
   {
     id: 2,
-    name: "Amoxicillin",
-    strength: "250 mg",
-    form: "Capsule",
-    category: "Antibiotics",
-    manufacturer: "XYZ Labs",
-    expiry: "2026-03-31",
-    description:
-      "Broad-spectrum antibiotic used to treat various infections. This text is truncated to keep card height consistent.",
-    price: 45,
-    stock: 0,
-    icon: <Vaccines sx={{ fontSize: 60, color: "#009688" }} />,
+    name: "Paracetamol",
+    strength: "650 mg",
+    form: "Tablet",
+    category: "Analgesic",
+    manufacturer: "MediLife Ltd.",
+    expiry: "2027-08-12",
+    price: 80,
+    stock: 0, // Out of stock for testing
+    description: "Reduces fever and relieves pain.",
   },
   {
     id: 3,
-    name: "Ibuprofen",
-    strength: "200 mg",
+    name: "Cetirizine",
+    strength: "10 mg",
     form: "Tablet",
-    category: "Painkillers",
-    manufacturer: "Heal Pharma",
-    expiry: "2025-09-30",
-    description: "Reduces inflammation and pain.",
-    price: 20,
-    stock: 36,
-    icon: <MedicalServices sx={{ fontSize: 60, color: "#009688" }} />,
+    category: "Antihistamine",
+    manufacturer: "HealthCorp",
+    expiry: "2025-09-22",
+    price: 45,
+    stock: 200,
+    description: "Used for allergy relief.",
   },
 ];
 
 const Medicinecard = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
-  const [cart, setCart] = useState([]);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
-
-  const cardRefs = useRef([]);
   const [maxHeight, setMaxHeight] = useState(0);
+  const cardRefs = useRef([]);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [sortType, setSortType] = useState("");
+
+  // Equal height adjustment
+  useEffect(() => {
+    const updateHeights = () => {
+      const heights = cardRefs.current.map((card) =>
+        card ? card.getBoundingClientRect().height : 0
+      );
+      const tallest = Math.max(...heights);
+      setMaxHeight(tallest);
+    };
+    updateHeights();
+    window.addEventListener("resize", updateHeights);
+    return () => window.removeEventListener("resize", updateHeights);
+  }, []);
 
   const handleViewDetails = (medicine) => {
     setSelectedMedicine(medicine);
     setOpenDialog(true);
   };
 
-  // ✅ Add to Cart Handler
-  const handleAddToCart = (medicine) => {
-    if (medicine.stock === 0) {
-      setSnackbar({ open: true, message: "Out of stock!", severity: "error" });
-      return;
-    }
-
-    if (cart.some((item) => item.id === medicine.id)) {
-      setSnackbar({ open: true, message: "Already in cart!", severity: "info" });
-      return;
-    }
-
-    setCart((prev) => [...prev, { ...medicine, quantity: 1 }]);
-    setSnackbar({ open: true, message: `${medicine.name} added to cart!`, severity: "success" });
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedMedicine(null);
   };
 
-  // ✅ Calculate tallest card height
-  useEffect(() => {
-    const updateHeights = () => {
-      const heights = cardRefs.current.map((card) => card?.getBoundingClientRect().height || 0);
-      const tallest = Math.max(...heights);
-      setMaxHeight(tallest);
-    };
+  const handleAddToCart = (medicine) => {
+    if (medicine.stock === 0) return;
+    alert(`${medicine.name} added to cart 🛒`);
+  };
 
-    updateHeights();
-    window.addEventListener("resize", updateHeights);
-    return () => window.removeEventListener("resize", updateHeights);
-  }, []);
+  const filteredMedicines = medicines
+    .filter((m) => m.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter((m) => (categoryFilter ? m.category === categoryFilter : true))
+    .sort((a, b) => {
+      if (sortType === "priceAsc") return a.price - b.price;
+      if (sortType === "priceDesc") return b.price - a.price;
+      if (sortType === "nameAsc") return a.name.localeCompare(b.name);
+      if (sortType === "nameDesc") return b.name.localeCompare(a.name);
+      return 0;
+    });
+
+  const categories = [...new Set(medicines.map((m) => m.category))];
 
   return (
-    <Box p={2} bgcolor="#f5f5f5" minHeight="100vh">
-      <Typography variant="h4" mb={3} color="primary" align="center">
-        Available Medicines
+    <Box sx={{ p: { xs: 2, sm: 4 }, backgroundColor: "#f4f7fa" }}>
+      <Typography
+        variant="h4"
+        sx={{
+          mb: 3,
+          textAlign: "center",
+          fontWeight: "bold",
+          color: "#1976d2",
+          letterSpacing: 1,
+        }}
+      >
+        🏥 Available Medicines
       </Typography>
 
-      <Grid container spacing={3} alignItems="stretch">
-        {medicines.map((m, idx) => (
-          <Grid item xs={12} sm={6} md={4} key={m.id} sx={{ display: "flex" }}>
+      {/* Filter Bar */}
+      <Paper
+        sx={{
+          mb: 4,
+          p: 2,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 2,
+          alignItems: "center",
+          justifyContent: "space-between",
+          boxShadow: 3,
+          borderRadius: 3,
+          backgroundColor: "#ffffff",
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+        }}
+      >
+        <TextField
+          variant="outlined"
+          size="small"
+          label="Search Medicines"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: <Search sx={{ mr: 1, color: "#1976d2" }} />,
+          }}
+          sx={{ flex: 1, minWidth: 180 }}
+        />
+
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Category</InputLabel>
+          <Select
+            value={categoryFilter}
+            label="Category"
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <MenuItem value="">All</MenuItem>
+            {categories.map((cat) => (
+              <MenuItem key={cat} value={cat}>
+                {cat}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Sort By</InputLabel>
+          <Select
+            value={sortType}
+            label="Sort By"
+            onChange={(e) => setSortType(e.target.value)}
+          >
+            <MenuItem value="">None</MenuItem>
+            <MenuItem value="priceAsc">Price: Low → High</MenuItem>
+            <MenuItem value="priceDesc">Price: High → Low</MenuItem>
+            <MenuItem value="nameAsc">Name: A → Z</MenuItem>
+            <MenuItem value="nameDesc">Name: Z → A</MenuItem>
+          </Select>
+        </FormControl>
+      </Paper>
+
+      {/* Medicines Grid */}
+      <Grid container spacing={4} justifyContent="center">
+        {filteredMedicines.map((m, idx) => (
+          <Grid
+            item
+            key={m.id}
+            xs={12}
+            sm={6}
+            md={4}
+            display="flex"
+            justifyContent="center"
+          >
             <motion.div
-              whileHover={{ y: -5, boxShadow: "0 8px 20px rgba(0,0,0,0.2)" }}
+              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.3 }}
-              style={{ width: "100%" }}
+              style={{ width: "100%", maxWidth: 340 }}
             >
               <Card
                 ref={(el) => (cardRefs.current[idx] = el)}
-                elevation={4}
+                elevation={6}
                 sx={{
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
-                  borderRadius: 2,
-                  height: maxHeight || "100%",
+                  borderRadius: 3,
+                  textAlign: "center",
+                  p: 2,
+                  height: maxHeight || "auto",
                   minHeight: 420,
+                  background:
+                    "linear-gradient(145deg, #ffffff, #f2f6fb 60%, #e8f0fe)",
+                  boxShadow:
+                    "0 8px 24px rgba(25, 118, 210, 0.18), 0 0 4px rgba(25,118,210,0.1)",
+                  transition: "0.3s",
+                  "&:hover": { boxShadow: "0 12px 32px rgba(25,118,210,0.3)" },
+                  position: "relative",
                 }}
               >
-                <CardMedia
-                  sx={{
-                    height: 140,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    bgcolor: "#e0f7fa",
-                  }}
-                >
-                  {m.icon}
-                </CardMedia>
-
                 <CardContent
                   sx={{
                     flexGrow: 1,
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
-                    minHeight: 240,
                   }}
                 >
-                  <Box>
-                    <Typography
-                      variant="h6"
-                      sx={{ fontSize: { xs: "1rem", sm: "1.1rem" } }}
-                    >
-                      {m.name}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      {m.strength} • {m.form}
-                    </Typography>
-                    <motion.div whileHover={{ scale: 1.1 }}>
-                      <Chip
-                        label={m.category}
-                        size="small"
-                        color={categoryColors[m.category] || "default"}
-                        sx={{ mt: 1 }}
-                      />
-                    </motion.div>
-                    <Typography variant="body2" mt={1} color="textSecondary">
-                      Manufacturer: {m.manufacturer}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      Expiry: {m.expiry}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="textSecondary"
-                      sx={{
-                        mt: 1,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                      }}
-                    >
-                      {m.description}
-                    </Typography>
-                  </Box>
-
-                  <Box mt={2}>
-                    <Typography variant="h6" color="success.main">
-                      ₹{m.price.toFixed(2)}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color={m.stock > 0 ? "textSecondary" : "error.main"}
-                    >
-                      {m.stock > 0 ? `Stock: ${m.stock}` : "Out of Stock"}
-                    </Typography>
-                  </Box>
+                  <Medication sx={{ fontSize: 50, color: "#1976d2", mb: 1 }} />
+                  <Typography
+                    variant="h6"
+                    sx={{ mb: 1, fontWeight: 700, color: "#0d47a1" }}
+                  >
+                    {m.name}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#555" }}>
+                    <strong>Strength:</strong> {m.strength}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#555" }}>
+                    <strong>Form:</strong> {m.form}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#555" }}>
+                    <strong>Category:</strong> {m.category}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#555" }}>
+                    <strong>Manufacturer:</strong> {m.manufacturer}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mt: 0.5,
+                      fontWeight: "bold",
+                      color: m.stock > 0 ? "green" : "red",
+                    }}
+                  >
+                    {m.stock > 0 ? `${m.stock} available` : "Out of stock"}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1, color: "#1976d2" }}>
+                    <strong>₹{m.price}</strong>
+                  </Typography>
                 </CardContent>
 
-                <CardActions sx={{ flexDirection: "column", gap: 1 }}>
+                <CardActions
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    mt: 1,
+                  }}
+                >
                   <Button
-                    fullWidth
                     variant="contained"
                     color="primary"
-                    onClick={() => handleViewDetails(m)}
+                    fullWidth
                     startIcon={<Info />}
+                    onClick={() => handleViewDetails(m)}
                   >
                     View Details
                   </Button>
-
                   <Button
-                    fullWidth
                     variant="outlined"
-                    color="success"
-                    onClick={() => handleAddToCart(m)}
+                    color="secondary"
+                    fullWidth
                     startIcon={<AddShoppingCart />}
+                    onClick={() => handleAddToCart(m)}
+                    disabled={m.stock === 0}
                   >
-                    Add to Cart
+                    {m.stock === 0 ? "Out of Stock" : "Add to Cart"}
                   </Button>
                 </CardActions>
               </Card>
@@ -245,48 +306,81 @@ const Medicinecard = () => {
         ))}
       </Grid>
 
-      {/* ✅ Details Modal */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-        {selectedMedicine && (
-          <>
-            <DialogTitle>{selectedMedicine.name}</DialogTitle>
-            <DialogContent dividers sx={{ bgcolor: "#e0f2f1" }}>
-              <Box display="flex" flexDirection="column" gap={2}>
-                <Box display="flex" justifyContent="center">{selectedMedicine.icon}</Box>
-                <Typography><strong>Strength:</strong> {selectedMedicine.strength}</Typography>
-                <Typography><strong>Form:</strong> {selectedMedicine.form}</Typography>
-                <Typography><strong>Category:</strong> {selectedMedicine.category}</Typography>
-                <Typography><strong>Manufacturer:</strong> {selectedMedicine.manufacturer}</Typography>
-                <Typography><strong>Expiry:</strong> {selectedMedicine.expiry}</Typography>
-                <Typography><strong>Price:</strong> ₹{selectedMedicine.price.toFixed(2)}</Typography>
-                <Typography><strong>Stock:</strong> {selectedMedicine.stock > 0 ? selectedMedicine.stock : "Out of Stock"}</Typography>
-                <Divider />
-                <Typography>{selectedMedicine.description}</Typography>
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => handleAddToCart(selectedMedicine)} color="success" startIcon={<AddShoppingCart />}>
-                Add to Cart
-              </Button>
-              <Button onClick={() => setOpenDialog(false)} color="primary">
-                Close
-              </Button>
-            </DialogActions>
-          </>
-        )}
-      </Dialog>
+      {/* Dialog */}
+      {selectedMedicine && (
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{
+            sx: {
+              borderRadius: 4,
+              backdropFilter: "blur(8px)",
+              background:
+                "linear-gradient(160deg, rgba(255,255,255,0.95), rgba(240,248,255,0.9))",
+              boxShadow: "0 8px 24px rgba(25,118,210,0.3)",
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontWeight: "bold",
+              color: "#fff",
+              background:
+                "linear-gradient(90deg, #1976d2, #42a5f5, #64b5f6)",
+              textAlign: "center",
+              py: 2,
+            }}
+          >
+            <Medication sx={{ mr: 1, verticalAlign: "middle" }} />
+            {selectedMedicine.name}
+          </DialogTitle>
 
-      {/* ✅ Snackbar Notification */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert severity={snackbar.severity} sx={{ width: "100%" }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+          <DialogContent dividers>
+            <Typography sx={{ mb: 1 }}>
+              <strong>Strength:</strong> {selectedMedicine.strength}
+            </Typography>
+            <Typography sx={{ mb: 1 }}>
+              <strong>Form:</strong> {selectedMedicine.form}
+            </Typography>
+            <Typography sx={{ mb: 1 }}>
+              <strong>Category:</strong> {selectedMedicine.category}
+            </Typography>
+            <Typography sx={{ mb: 1 }}>
+              <strong>Manufacturer:</strong> {selectedMedicine.manufacturer}
+            </Typography>
+            <Typography sx={{ mb: 1 }}>
+              <strong>Expiry Date:</strong> {selectedMedicine.expiry}
+            </Typography>
+            <Typography sx={{ mb: 1 }}>
+              <strong>Price:</strong> ₹{selectedMedicine.price}
+            </Typography>
+            <Typography sx={{ mb: 1 }}>
+              <strong>Stock:</strong> {selectedMedicine.stock}
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Typography sx={{ fontStyle: "italic" }}>
+              {selectedMedicine.description}
+            </Typography>
+          </DialogContent>
+
+          <DialogActions sx={{ justifyContent: "center", py: 2 }}>
+            <Button onClick={handleCloseDialog} color="primary">
+              Close
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<AddShoppingCart />}
+              onClick={() => handleAddToCart(selectedMedicine)}
+              disabled={selectedMedicine.stock === 0}
+            >
+              {selectedMedicine.stock === 0 ? "Out of Stock" : "Add to Cart"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Box>
   );
 };
