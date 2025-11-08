@@ -700,106 +700,191 @@ const PatientsPage = () => {
           Add New Patient
         </Button>
       </Box>
-
-      {/* Filters Section */}
-      <Card sx={{ mb: 3 }}>
-        <CardHeader
-          title="Filters"
-          subheader="Patient records will update automatically as you filter"
+{/* Filters Section */}
+<Card sx={{ mb: 3 }}>
+  <CardHeader
+    title="Filters"
+    subheader="Patient records will update automatically as you filter"
+  />
+  <Divider />
+  <CardContent>
+    <Grid container spacing={isMobile ? 2 : 6} sx={{display:'flex',alignItems:'center'}}>
+      {/* Patient Name Search */}
+      <Grid item xs={12} sm={6} md={3}>
+        <TextField
+          fullWidth
+          size="small"
+          label="Patient Name"
+          variant="outlined"
+          value={filters.name}
+          onChange={(e) => handleFilterChange("name", e.target.value)}
+          placeholder="Search by name"
         />
-        <Divider />
-        <CardContent>
-          <Grid container spacing={isMobile?1:3}>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                size={isMobile?"small":"medium"}
-                label="Patient Name"
-                variant="outlined"
-                value={filters.name}
-                onChange={(e) => handleFilterChange("name", e.target.value)}
-                placeholder="Search by name"
-              />
-            </Grid>
+      </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size={isMobile?"small":"medium"}>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={filters.status}
-                  onChange={(e) => handleFilterChange("status", e.target.value)}
-                  label="Status"
-                >
-                  <MenuItem value="">All Statuses</MenuItem>
-                  <MenuItem value="Admitted">Admitted</MenuItem>
-                  <MenuItem value="Discharged">Discharged</MenuItem>
-                  <MenuItem value="Outpatient">Outpatient</MenuItem>
-                  <MenuItem value="Emergency">Emergency</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+      {/* Status Dropdown */}
+      <Grid item xs={12} sm={6} md={6}>
+        <FormControl sx={{ minWidth: 200 }} size="small" fullWidth>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={filters.status}
+            onChange={(e) => handleFilterChange("status", e.target.value)}
+            label="Status"
+            sx={{
+              minHeight: '40px',
+              '& .MuiSelect-select': {
+                padding: '8px 14px',
+                fontSize: '14px',
+                minHeight: '20px !important',
+                display: 'flex',
+                alignItems: 'center',
+                width: '30%'
+              }
+            }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  maxHeight: 300, maxWidth:200,
+                  '& .MuiMenuItem-root': {
+                    fontSize: '14px',
+                    minHeight: '36px',
+                    padding: '6px 16px'
 
-            <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size={isMobile?"small":"medium"}>
-                <InputLabel>Doctor</InputLabel>
-                <Select
-                  value={filters.doctorId}
-                  onChange={(e) =>
-                    handleFilterChange("doctorId", e.target.value)
                   }
-                  label="Doctor"
-                  disabled={doctorsLoading}
-                >
-                  <MenuItem value="">All Doctors</MenuItem>
-                  {doctors.map((doctor) => (
-                    <MenuItem key={doctor._id} value={doctor._id}>
-                      Dr. {doctor.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size={isMobile?"small":"medium"}>
-                <InputLabel>Department</InputLabel>
-                <Select
-                  value={filters.departmentId}
-                  onChange={(e) =>
-                    handleFilterChange("departmentId", e.target.value)
-                  }
-                  label="Department"
-                  disabled={departmentsLoading}
-                >
-                  <MenuItem value="">All Departments</MenuItem>
-                  {departments.map((department) => (
-                    <MenuItem key={department._id} value={department._id}>
-                      {department.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-
-          <Box
-            sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}
+                }
+              }
+            }}
           >
-            <Button
-              variant="outlined"
-              size={isMobile ? "small" : "medium"}
-              startIcon={<RefreshIcon />}
-              onClick={resetFilters}
-            >
-              Reset Filters
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
+            <MenuItem value="">All Statuses</MenuItem>
+            <MenuItem value="Admitted">Admitted</MenuItem>
+            <MenuItem value="Discharged">Discharged</MenuItem>
+            <MenuItem value="Outpatient">Outpatient</MenuItem>
+            <MenuItem value="Emergency">Emergency</MenuItem>
+          </Select>
+        </FormControl>
+      </Grid>
+
+      {/* Doctor Dropdown */}
+      <Grid item xs={12} sm={6} md={3}>
+        <FormControl sx={{ minWidth: 200 }} size="small" fullWidth>
+          <InputLabel>Doctor</InputLabel>
+          <Select
+            value={filters.doctorId}
+            onChange={(e) => handleFilterChange("doctorId", e.target.value)}
+            label="Doctor"
+            disabled={doctorsLoading}
+            sx={{
+              minHeight: '30px',
+              '& .MuiSelect-select': {
+                padding: '8px 14px',
+                fontSize: '14px',
+                minHeight: '20px !important',
+                display: 'flex',
+                alignItems: 'center'
+              }
+            }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  maxHeight: 300,
+                  '& .MuiMenuItem-root': {
+                    fontSize: '14px',
+                    minHeight: '36px',
+                    padding: '6px 16px'
+                  }
+                }
+              }
+            }}
+          >
+            <MenuItem value="">All Doctors</MenuItem>
+            {doctors.map((doctor) => (
+              <MenuItem key={doctor._id} value={doctor._id}>
+                Dr. {doctor.name}
+              </MenuItem>
+            ))}
+          </Select>
+          {doctorsLoading && (
+            <FormHelperText sx={{ fontSize: '12px' }}>Loading doctors...</FormHelperText>
+          )}
+        </FormControl>
+      </Grid>
+
+      {/* Department Dropdown */}
+      <Grid item xs={12} sm={6} md={3}>
+        <FormControl sx={{ minWidth: 200 }} size="small" fullWidth>
+          <InputLabel>Department</InputLabel>
+          <Select
+            value={filters.departmentId}
+            onChange={(e) => handleFilterChange("departmentId", e.target.value)}
+            label="Department"
+            disabled={departmentsLoading}
+            sx={{
+              minHeight: '40px',
+              '& .MuiSelect-select': {
+                padding: '8px 14px',
+                fontSize: '14px',
+                minHeight: '20px !important',
+                display: 'flex',
+                alignItems: 'center'
+              }
+            }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  maxHeight: 300,
+                  '& .MuiMenuItem-root': {
+                    fontSize: '14px',
+                    minHeight: '36px',
+                    padding: '6px 16px'
+                  }
+                }
+              }
+            }}
+          >
+            <MenuItem value="">All Departments</MenuItem>
+            {departments.map((department) => (
+              <MenuItem key={department._id} value={department._id}>
+                {department.name}
+              </MenuItem>
+            ))}
+          </Select>
+          {departmentsLoading && (
+            <FormHelperText sx={{ fontSize: '12px' }}>Loading departments...</FormHelperText>
+          )}
+        </FormControl>
+      </Grid>
+    </Grid>
+
+    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
+      <Button
+        variant="outlined"
+        size="small"
+        startIcon={<RefreshIcon />}
+        onClick={resetFilters}
+      >
+        Reset Filters
+      </Button>
+    </Box>
+  </CardContent>
+</Card>
 
       {/* Patient List Table */}
       <Card>
-        <Box sx={{width:'100%',overflowX:'auto',position:'relative'}}>
+ <Box 
+    sx={{
+      width: '100%',
+      overflowX: 'auto',
+      WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
+      '&::-webkit-scrollbar': {
+        height: '8px',
+      },
+      '&::-webkit-scrollbar-thumb': {
+        backgroundColor: theme.palette.mode === 'dark' ? '#555' : '#888',
+        borderRadius: '5px',
+      },
+    }}
+  >
+          
         <TableContainer component={Paper} sx={{minWidth:800}}>
           <Table>
             <TableHead>

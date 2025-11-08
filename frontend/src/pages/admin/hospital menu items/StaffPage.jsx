@@ -32,6 +32,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { styled } from '@mui/material/styles';
 import { createPharmacist, fetchAllPharmacists, updatePharmacist } from '../../../../features/pharmacistSlice';
 import { createNurse, fetchAllNurses, updateNurse } from '../../../../features/nurseSlice';
+import { he } from 'date-fns/locale';
 
 // Constants
 const SPECIALIZATIONS = [
@@ -53,25 +54,33 @@ const VisuallyHiddenInput = styled('input')({
   bottom: 0,
   left: 0,
   whiteSpace: 'nowrap',
-  width: 1,
+  width: 0,
 });
 
 const DataGridContainer = styled(Paper)(({ theme }) => ({
-  height: 500,
+  height: '70vh',
   width: '100%',
   position: 'relative',
+  [theme.breakpoints.down('sm')]: { height: '60vh' },
+  [theme.breakpoints.up('md')]: { height: '75vh' },
+  [theme.breakpoints.up('lg')]: { height: '80vh' },
   '& .MuiDataGrid-root': {
     border: 'none',
   },
+  // This ensures the scrollable container works properly
+  '& .MuiDataGrid-virtualScroller': {
+    overflowX: 'auto !important',
+  },
   '& ::-webkit-scrollbar': {
-    width: '10px',
-    height: '10px',
+    width: '8px',
+    height: '8px',
   },
   '& ::-webkit-scrollbar-thumb': {
     backgroundColor: theme.palette.mode === 'dark' ? '#555' : '#888',
     borderRadius: '5px',
   },
 }));
+
 
 const PageWrapper = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -335,12 +344,12 @@ const StaffPage = () => {
       width: 100,
       renderCell: (params) => params.value ? 'Active' : 'Inactive'
     },
-    { field: 'experience', headerName: 'Experience', width: 120 },
+    { field: 'experience', headerName: 'Experience', width: 100 },
     { 
       field: 'qualifications', 
       headerName: 'Qualifications', 
       flex: 1,
-      minWidth: 200,
+      minWidth: 100,
       renderCell: (params) => (params.value || []).join(', ')
     },
 // Modified department column valueGetter function - this is the only change needed
@@ -348,7 +357,7 @@ const StaffPage = () => {
   field: 'department', 
   headerName: 'Department', 
   flex: 1,
-  minWidth: 150,
+  minWidth: 100,
   // More robust valueGetter to handle all undefined cases
   valueGetter: (params) => {
     try {
@@ -369,7 +378,7 @@ const StaffPage = () => {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 120,
+      width: 160,
       sortable: false,
       renderCell: (params) => (
         <Box>
@@ -635,28 +644,22 @@ const StaffPage = () => {
       </Dialog>
 
       {/* Staff Data Grid */}
-      <DataGridContainer elevation={3}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          pagination
-          pageSize={10}
-          loading={doctorsLoading}
-          disableSelectionOnClick
-          autoHeight
-          sx={{
-            minHeight: 400,
-            '& .MuiDataGrid-cell:focus': {
-              outline: 'none',
-            },
-          }}
-          initialState={{
-            pagination: {
-              pageSize: 10,
-            },
-          }}
-        />
-      </DataGridContainer>
+<DataGridContainer elevation={3}>
+  <DataGrid
+    rows={rows}
+    columns={columns}
+    pagination
+    pageSize={10}
+    loading={doctorsLoading}
+    disableSelectionOnClick
+    autoHeight={false}
+    sx={{ 
+      '& .MuiDataGrid-cell:focus': { outline: 'none' },
+      minWidth: '800px', // Move minWidth here
+    }}
+    initialState={{ pagination: { pageSize: 10 }}}
+  />
+</DataGridContainer>
     </PageWrapper>
   );
 };
