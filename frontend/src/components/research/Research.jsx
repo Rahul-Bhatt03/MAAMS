@@ -65,6 +65,7 @@ import {
 
 // Custom styles
 import { alpha } from '@mui/material/styles';
+import { he } from 'date-fns/locale';
 
 const Research = () => {
   const dispatch = useDispatch();
@@ -381,6 +382,7 @@ const Research = () => {
               backgroundColor: 'primary.main',
               '&:hover': {
                 backgroundColor: 'primary.dark',
+                
               }
             }}
           >
@@ -396,16 +398,16 @@ const Research = () => {
           p: 2, 
           mb: 4, 
           display: 'flex', 
-          flexDirection: { xs: 'column', md: 'row' }, 
-          alignItems: 'center',
+          flexDirection: { xs: 'column', sm: 'row' }, 
+          alignItems: {xs:'stretch',sm:'center'},
           gap: 2,
-          borderRadius: 2
+          borderRadius: 2,
+          flexWrap: 'wrap',
         }}
       >
         <TextField
           placeholder="Search research projects..."
           variant="outlined"
-          fullWidth
           size="small"
           value={searchTerm}
           onChange={handleSearch}
@@ -416,10 +418,11 @@ const Research = () => {
               </InputAdornment>
             ),
           }}
-          sx={{ flexGrow: 1 }}
+          sx={{ width:{xs:'20%', md: 200,sm:'30%'}
+           }}
         />
         
-        <FormControl size="small" sx={{ minWidth: 200 }}>
+        <FormControl size="small" sx={{ width: {xs:'20%', md: 100,sm:'30%'}}}>
           <InputLabel>Filter By</InputLabel>
           <Select
             value={filterBy}
@@ -449,7 +452,7 @@ const Research = () => {
           </Select>
         </FormControl>
         
-        <FormControl size="small" sx={{ minWidth: 150 }}>
+        <FormControl size="small" sx={{ width:{xs:'20%',md: 200,sm:'30%'} }}>
           <InputLabel>Sort By</InputLabel>
           <Select
             value={sortBy}
@@ -481,12 +484,14 @@ const Research = () => {
       ) : (
         <Grid container spacing={3}>
           {sortedProjects.map((research) => (
-            <Grid item xs={12} md={6} lg={4} key={research._id}>
+            <Grid item xs={12} md={4} sm={6} lg={3} key={research._id} sx={{ display: 'flex' }}>
               <Card 
                 elevation={1}
                 sx={{ 
                   height: '100%', 
-                  display: 'flex', 
+                  display: 'flex',
+                  width: 450,
+                  minHeight: 250, 
                   flexDirection: 'column',
                   borderRadius: 2,
                   transition: 'all 0.3s ease',

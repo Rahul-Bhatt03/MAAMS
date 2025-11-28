@@ -11,6 +11,7 @@ import uploadReducer from './features/uploadSlice';
 import patientReducer from './features/patientSlice.js'
 import nurseReducer from './features/nurseSlice.js'
 import pharmacistReducer from './features/pharmacistSlice.js'
+import medicineReducer from './features/MedicineSlice.js'
 
 const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ const store = configureStore({
     patients:patientReducer,
     nurses:nurseReducer,
     pharmacists:pharmacistReducer,
+    medicines:medicineReducer,
   },
 });
 

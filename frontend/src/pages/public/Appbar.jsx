@@ -274,7 +274,7 @@ const HospitalAppBar = () => {
     { name: "Research", path: "/research", icon: <ScienceIcon /> },
     { name: "Careers", path: "/careers", icon: <WorkIcon /> },
    { name: "Medicine", path: "/medicine", icon: <MedicalInformationIcon /> },
-    { name: "Cart", path: "/cart", icon: <AddShoppingCartIcon /> },
+    { name: "", path: "/cart", icon: <AddShoppingCartIcon /> },
 
   ];
 
@@ -331,7 +331,7 @@ const HospitalAppBar = () => {
       </Box>
 
       {isAuthenticated && (
-        <Box sx={{ p: 2, textAlign: "center" }}>
+        <Box sx={{ p: 0, textAlign: "center" }}>
           <Typography variant="h6">{user?.name || "User"}</Typography>
           <Typography variant="body2" color="text.secondary">
             {user?.role === "doctor" ? "Doctor" : "Patient"}
@@ -480,7 +480,7 @@ const HospitalAppBar = () => {
 
             {/* Navigation Links (Desktop) */}
             {!isMobile && (
-              <Box sx={{ display: "flex", flexGrow: 1, ml: 4 }}>
+              <Box sx={{ display: "flex", flexGrow: 1, ml: 0 }}>
                 {navLinks.map((link) => (
                   <NavButton
                     key={link.name}
