@@ -1,101 +1,80 @@
-import Payment from "../models/Payment.js";
-import Order from "../models/Order.js";
- import {verifyEsewaPayment,verifyKhaltiPayment,verifyStripePayment} from "../utils/paymentGateway.js";
+import * as paymentService from "../Services/paymentService.js"
+import ApiResponse from "../utils/ApiResponse.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
- export const verifyPayment=async(req,res)=>{
-    try {
-        const {paymentMethod,orderId}=req.body;
-        const order=await Order.findById(orderId);
-        if(!order){
-            return res.status(404).json({success:false,message:"Order not found"});
-        }
-        let varificationResult;
-        switch(paymentMethod){
-            case 'esewa':
-                varificationResult=await verifyEsewaPayment(req.body);
-                break;
-            case 'khalti':
-                varificationResult=await verifyKhaltiPayment(req.body);
-                break;
-            case 'stripe':
-                varificationResult=await verifyStripePAyment(req.body);
-                break;
-            default:
-                return res.status(400).json({success:false,message:"Invalid payment method"});
-        }
-        if(varificationResult.success){
-const payment=await Payment.findOneAndUpdate({
-    order:order._id
-},{
-    status:'completed',
-    gatewayTransactionId:varificationResult.transactionId,
-    gatewayResponse:varificationResult.response
-},{
-    new:true,
-    runValidators:true
+export const initiatePayment = asyncHandler(async (req, res) => {
+  const result = await paymentService.initiateEsewaPayment(req.body);
+ return res.status(200).json(new ApiResponse(200,result,"payment initiated successfully"));
+
 });
-order.paymentStatus='completed';
-order.orderStatus='placed';
-await order.save();
-res.json({success:true,data:payment});
-        }else{
-          const payment=await Payment.findOneAndUpdate({order:order._id},  {
-            status: 'failed',
-            gatewayResponse: verificationResult.response
-          },
-          { new: true }
-        );
+
+
+export const verifyPayment = asyncHandler(async (req, res) => {
   
-        res.status(400).json({
-          success: false,
-          message: verificationResult.message,
-          data: { payment }
-        })
-        }
-    } catch (error) {
-        res.status(500).json({success:false,message:error.message});
-    }
- }
+    const { paymentId, refId } = req.body;
+    const result = await paymentService.verifyEsewaPayment(paymentId, refId);
+    if(result.status==="completed"){
+      const payment=await paymentService.findPaymentByIds(id)
 
- export const getPaymentStatus=async(req,res)=>{
-    try {
-        const payment=await Payment.findOne({order:req.params.orderId});
-        if(!payment){
-            return res.status(404).json({success:false,message:"Payment not found"});
-        }
-        res.json({success:true,data:payment});
-    } catch (error) {
-        res.status(500).json({success:false,message:error.message});
-    }
- }
+      if(!payment){
+        throw new Error("payment not found")
+      }
 
- export const processRefund=async(req,res)=>{
-    try {
-        if(req.user.role!=='admin'){
-            return res.status(403).json({success:false,message:"Not authorized"});
-        }
-        const {orderId,amount,reason}=req.body;
-        const payment=await Payment.findOne({order:orderId});
-        if(!payment){
-            return res.status(404).json({success:false,message:"Payment not found"});
-        }
-        if(payment.status!=='completed'){
-            return res.status(400).json({
-                success:false,
-                message:"Payment is not completed. can only refund completed payments"
-            })
-        }
-        payment.status='refunded'
-        payment.refundAmount=amount||payment.amount;
-        payment.refundReason=reason;
-        await payment.save();
+      const order=await Order.findById(payment.order);
+      if(!order){
+        throw new Error("order not found")
+      }
+      order.paymentStatus="completed";
+      order.orderStatus="confirmed"
+      await order.save()
 
-        const order=await Order.findById(payment.order);
-        order.paymentStatus='refunded';
-        order.orderStatus='cancelled';
-        await order.save();
-        res.json({success:true,data:payment});
-    } catch (error) {
-        res.status(500).json({success:false,message:error.message});
+       for (const item of order.items) {
+      await Medicine.findByIdAndUpdate(item.medicine, {
+        $inc: { stock: -item.quantity },
+      });
     }
- }
+
+ return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          paymentStatus: result.status,
+          orderId: order._id,
+          orderStatus: order.orderStatus,
+          message: "Payment verified and order confirmed",
+        },
+        "Payment verified successfully"
+      )
+    );
+  }
+  // Payment failed
+  const payment = await paymentService.findPaymentByIds(paymentId);
+  if (payment) {
+    const order = await Order.findById(payment.order);
+    if (order) {
+      order.paymentStatus = "failed";
+      await order.save();
+    }
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        paymentStatus: result.status,
+        message: "Payment verification failed",
+      },
+      "Payment verification completed"
+    )
+  );
+});
+
+
+export const getPaymentStatus=asyncHandler(async(req,res)=>{
+  const {paymentId}=req.params;
+  if(!paymentId){
+    throw new Error("payment id not found")
+  }
+  const status=await paymentService.getPaymentStatus(paymentId);
+  return res.status(200).json(new ApiResponse(200,status,"status fetched successfully"))
+})

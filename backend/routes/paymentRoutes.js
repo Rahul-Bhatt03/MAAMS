@@ -1,27 +1,12 @@
-import express from 'express';
-import {
-  verifyPayment,
-  getPaymentStatus,
-  processRefund
-} from '../controllers/paymentController.js';
-import { protect } from '../middleware/authMiddleware.js'; // handles authentication & role check
-import { admin } from '../middleware/authMiddleware.js';
+import express from "express";
+import { initiatePayment, verifyPayment } from "../controllers/paymentController.js";
 
 const router = express.Router();
 
-// @route   POST /api/payments/verify
-// @desc    Verify payment from a payment gateway
-// @access  Public (or protect, if required)
-router.post('/verify', verifyPayment);
+// 🟢 Initiate Esewa Payment (User side)
+router.post("/initiate", initiatePayment);
 
-// @route   GET /api/payments/status/:orderId
-// @desc    Get payment status for a specific order
-// @access  Protected
-router.get('/status/:orderId', protect, getPaymentStatus);
-
-// @route   POST /api/payments/refund
-// @desc    Process a refund (admin only)
-// @access  Protected + Admin (handled by protect middleware)
-router.post('/refund', protect,admin, processRefund);
+// 🟢 Verify Esewa Payment (after success/failure redirect)
+router.post("/verify", verifyPayment);
 
 export default router;

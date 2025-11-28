@@ -46,7 +46,7 @@ app.use('/api/patients',patientRoutes)
 app.use('/api/nurses',nurseRoutes)
 app.use('/api/pharmacist',pharmacistRoutes)
 app.use('/api/medicines', medicineRoutes); 
-app.use('/api/payments', paymentRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use('/api/orders', orderRoutes);
 
 

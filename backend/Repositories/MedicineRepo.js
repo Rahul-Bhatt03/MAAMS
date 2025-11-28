@@ -25,4 +25,4 @@ class MedicineRepo {
     }
 }
 
-export default MedicineRepo;
+export default  MedicineRepo;
