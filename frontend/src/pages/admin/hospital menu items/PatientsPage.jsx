@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import PatientTable from './PatientTable';
 import {
   fetchPatients,
   deletePatient,
@@ -74,6 +75,7 @@ import {
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+
 
 
 // Initial form state
@@ -168,8 +170,7 @@ const PatientsPage = () => {
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [patientToDelete, setPatientToDelete] = useState(null);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedPatient, setSelectedPatient] = useState(null);
+  
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -228,7 +229,7 @@ const PatientsPage = () => {
 
   const handleChangeRowsPerPage=(event)=>{
     setRowsPerPage(parseInt(event.target.value,10 ))
-      setPage(newPage)
+      setPage(0)
   }
 
   // Load initial data
@@ -673,7 +674,7 @@ const PatientsPage = () => {
     patientsLoading || doctorsLoading || departmentsLoading || nursesLoading;
 
   return (
-    <Box sx={{ p:isMobile?1:3 }}>
+    <Box sx={{ p:isMobile?1:3,minHeight:'100vh',overflowX:'hidden' }}>
       {/* Header and Add Patient Button */}
       <Box
         sx={{
@@ -708,7 +709,7 @@ const PatientsPage = () => {
   />
   <Divider />
   <CardContent>
-    <Grid container spacing={isMobile ? 2 : 6} sx={{display:'flex',alignItems:'center'}}>
+    <Grid container spacing={isMobile ? 2 : 3} sx={{display:'flex',alignItems:'center'}}>
       {/* Patient Name Search */}
       <Grid item xs={12} sm={6} md={3}>
         <TextField
@@ -867,188 +868,35 @@ const PatientsPage = () => {
     </Box>
   </CardContent>
 </Card>
-
-      {/* Patient List Table */}
-      <Card>
- <Box 
-    sx={{
-      width: '100%',
-      overflowX: 'auto',
-      WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
-      '&::-webkit-scrollbar': {
-        height: '8px',
-      },
-      '&::-webkit-scrollbar-thumb': {
-        backgroundColor: theme.palette.mode === 'dark' ? '#555' : '#888',
-        borderRadius: '5px',
-      },
-    }}
-  >
-          
-        <TableContainer component={Paper} sx={{minWidth:800}}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Gender</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Doctor</TableCell>
-                <TableCell>Department</TableCell>
-                <TableCell>Room</TableCell>
-                <TableCell>Date Added</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              ) : patients.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                    <Typography>No patients found</Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                patients.filter(p => p?._id).slice(page*rowsPerPage,page*rowsPerPage+rowsPerPage).map((patient) => (
-                  <TableRow key={patient._id} hover>
-                    <TableCell>
-                      <Link
-                        to={`/patients/${patient._id}`}
-                        style={{ textDecoration: "none", color: "inherit" }}
-                      >
-                        <Typography sx={{ fontWeight: 500 }}>
-                          {patient.name}
-                        </Typography>
-                      </Link>
-                    </TableCell>
-                    <TableCell>{patient.gender}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={patient.status}
-                        color={getStatusColor(patient.status)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {patient.assignedDoctor
-                        ? `Dr. ${patient.assignedDoctor.name}`
-                        : "Unassigned"}
-                    </TableCell>
-                    <TableCell>
-                      {patient.department
-                        ? patient.department.name
-                        : "Unassigned"}
-                    </TableCell>
-                    <TableCell>{patient.roomNumber || "N/A"}</TableCell>
-                    <TableCell>
-                      {format(new Date(patient.createdAt), "MMM dd, yyyy")}
-                    </TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        onClick={(e) => {
-                          setAnchorEl(e.currentTarget);
-                          setSelectedPatient(patient);
-                        }}
-                      >
-                        <MoreVertIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        </Box>
-
-        {/* Action Menu */}
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={() => setAnchorEl(null)}
-        >
-          <MenuItem
-            onClick={() => {
-              navigate(`/patients/${selectedPatient?._id}`);
-              setAnchorEl(null);
-            }}
-          >
-            <VisibilityIcon sx={{ mr: 1 }} /> View Details
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              openEditPatientForm(selectedPatient);
-              setAnchorEl(null);
-            }}
-          >
-            <EditIcon sx={{ mr: 1 }} /> Edit
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              confirmDelete(selectedPatient);
-              setAnchorEl(null);
-            }}
-            sx={{ color: "error.main" }}
-          >
-            <DeleteIcon sx={{ mr: 1 }} /> Delete
-          </MenuItem>
-        </Menu>
- {/* Enhanced Pagination with rows selector */}
- <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          p: 2,
-          borderTop: '1px solid rgba(224, 224, 224, 1)'
-        }}>
-          <Box sx={{ flexShrink: 0 }}>
-            <Typography variant="body2" color="text.secondary">
-              Showing {page * rowsPerPage + 1} to{' '}
-              {Math.min((page + 1) * rowsPerPage, patients.length)} of{' '}
-              {patients.length} patients
-            </Typography>
-          </Box>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Rows</InputLabel>
-              <Select
-                value={rowsPerPage}
-                onChange={handleChangeRowsPerPage}
-                label="Rows"
-              >
-                {[5, 10, 25, 50].map((rows) => (
-                  <MenuItem key={rows} value={rows}>
-                    {rows} per page
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
-            <Pagination
-              count={Math.ceil(patients.length / rowsPerPage)}
-              page={page + 1}
-              onChange={(e, newPage) => handleChangePage(e, newPage - 1)}
-              color="primary"
-              showFirstButton
-              showLastButton
-              size={isMobile ? "small" : "medium"}
-            />
-          </Box>
-        </Box>
-      </Card>
-
+{/* Patient List Table */}
+<PatientTable
+patients={patients}
+isLoading={isLoading}
+page={page}
+rowsPerPage={rowsPerPage}
+onPageChange={handleChangePage}
+onRowsPerPageChange={handleChangeRowsPerPage}
+onEdit={openEditPatientForm}
+onDelete={confirmDelete}
+getStatusColor={getStatusColor}
+/>
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
       >
         <DialogTitle>Are you sure?</DialogTitle>
-        <DialogContent>
+        <DialogContent
+        dividers
+        sx={{
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          px: isMobile?2:3,
+          py: 2,
+          scrollBehavior: 'smooth',
+          WebkitOverflowScrolling: 'touch',
+        }}
+        >
           <DialogContentText>
             This will permanently delete the patient record for{" "}
             {patientToDelete?.name}. This action cannot be undone.
@@ -1068,8 +916,24 @@ const PatientsPage = () => {
         onClose={() => setFormDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        fullScreen={isMobile} // add this for mobile responsiveness
+        scroll ="paper" // add this for better scrolling
+        sx={{
+            '& .MuiDialog-paper':{
+              maxHeight: isMobile ? '100vh' : '90vh',
+            }
+          }}
       >
-        <DialogTitle>
+        <DialogTitle
+          sx={{
+            position:'sticky',
+          top:0,
+          backgroundColor:'background.paper',
+          zIndex:1,
+          borderBottom:'1px solid',
+          borderColor:'divider',
+           }}
+           >
           <Box
             sx={{
               display: "flex",
@@ -1077,15 +941,40 @@ const PatientsPage = () => {
               alignItems: "center",
             }}
           >
+        <Typography variant={isMobile ? "h6":"h5"}>
             {isEditMode ? "Edit Patient" : "Add New Patient"}
+          </Typography>
             <IconButton onClick={() => setFormDialogOpen(false)}>
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
-            <Tabs value={tabValue} onChange={handleTabChange}>
+        
+          
+        <DialogContent
+          dividers
+          sx={{
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            px: isMobile?2:3,
+            py: 2,
+            scrollBehavior: 'smooth',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          <Box sx={{ borderBottom: 1,
+           borderColor: "divider",
+             position:'sticky',
+             top: isMobile ? 56 : 64,
+             backgroundColor:'background.paper',
+             zIndex:1,
+              }}
+              >
+            <Tabs value={tabValue} onChange={handleTabChange}
+            variant={isMobile?"scrollable":"standard"}
+            scrollButtons={isMobile?"auto":false}
+            allowScrollButtonsMobile
+            >
               <Tab label="Personal Information" />
               <Tab label="Medical Information" />
               <Tab label="Emergency Contact" />
@@ -1095,6 +984,7 @@ const PatientsPage = () => {
               <Tab label="Visits" />
             </Tabs>
           </Box>
+          <Box sx={{ px: isMobile ? 2 : 3, py: 2 }}>
 
           {/* Personal Information Tab */}
           {tabValue === 0 && (
@@ -2002,12 +1892,20 @@ const PatientsPage = () => {
               </Grid>
             </Grid>
           )}
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
+        
+        <DialogActions sx={{ p: isMobile ? 2 : 3,
+          position:'sticky',bottom:0,backgroundColor:'background.paper',borderTop:'1px solid',borderColor:'divider',
+          flexWrap:isMobile? 'wrap':'nowrap',
+          gap:1,
+         }}
+         >
           <Button
             variant="outlined"
             onClick={() => setFormDialogOpen(false)}
             disabled={formSubmitting}
+            fullWidth={isMobile}
           >
             Cancel
           </Button>
@@ -2016,25 +1914,28 @@ const PatientsPage = () => {
               variant="outlined"
               onClick={() => setTabValue(tabValue - 1)}
               disabled={formSubmitting}
+              fullWidth={isMobile}
             >
               Back
             </Button>
           )}
-          {tabValue < 6 ? (
+          {tabValue < 6 && (
             <Button
               variant="contained"
               onClick={() => setTabValue(tabValue + 1)}
               disabled={formSubmitting}
+              fullWidth={isMobile}
             >
               Next
             </Button>
-          ) : null}
+          )}
           <Button
             variant="contained"
             onClick={handleSubmitForm}
             disabled={formSubmitting}
             startIcon={formSubmitting ? <CircularProgress size={20} /> : null}
-            sx={{ ml: "auto" }}
+            sx={{ ml: isMobile ? 0 : 'auto' }}
+            fullWidth={isMobile}
           >
             {isEditMode ? "Update Patient" : "Add Patient"}
           </Button>
