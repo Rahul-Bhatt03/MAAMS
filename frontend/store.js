@@ -12,6 +12,7 @@ import patientReducer from './features/patientSlice.js'
 import nurseReducer from './features/nurseSlice.js'
 import pharmacistReducer from './features/pharmacistSlice.js'
 import medicineReducer from './features/MedicineSlice.js'
+import cartReducer from './features/cartSlice.js';
 
 const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ const store = configureStore({
     nurses:nurseReducer,
     pharmacists:pharmacistReducer,
     medicines:medicineReducer,
+    cart: cartReducer
   },
 });
 

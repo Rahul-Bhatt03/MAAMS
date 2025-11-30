@@ -51,7 +51,8 @@ import ScheduleIcon from "@mui/icons-material/Schedule";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import ClearIcon from "@mui/icons-material/Clear";
 import MedicalInformationIcon from "@mui/icons-material/MedicalInformation";
-import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+import { ShoppingCart } from "@mui/icons-material";
+
 
 import { debounce } from "lodash";
 
@@ -252,6 +253,12 @@ const HospitalAppBar = () => {
     }
   };
 
+  // Add this useSelector hook after other useSelector hooks
+const cartItems = useSelector((state) => state.cart.items);
+const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+
+
+
   // Clear search
   const handleClearSearch = () => {
     setSearchValue("");
@@ -273,8 +280,8 @@ const HospitalAppBar = () => {
     { name: "Departments", path: "/departments", icon: <LocalHospitalIcon /> },
     { name: "Research", path: "/research", icon: <ScienceIcon /> },
     { name: "Careers", path: "/careers", icon: <WorkIcon /> },
-   { name: "Medicine", path: "/medicine", icon: <MedicalInformationIcon /> },
-    { name: "", path: "/cart", icon: <AddShoppingCartIcon /> },
+    { name: "Medicine", path: "/medicine", icon: <MedicalInformationIcon /> },
+
 
   ];
 
@@ -533,6 +540,8 @@ const HospitalAppBar = () => {
                         </IconButton>
                       )}
                     </Search>
+
+
                   </form>
 
                   {/* Search Results Dropdown */}
@@ -667,6 +676,21 @@ const HospitalAppBar = () => {
                   )}
                 </SearchSection>
               </ClickAwayListener>
+
+              <IconButton
+                color="inherit"
+                component={Link}
+                to="/cart"
+                sx={{ ml: 1 }}
+              >
+                <Badge
+                  badgeContent={cartItemsCount}
+                  color="secondary"
+                  showZero={false}
+                >
+                  <ShoppingCart />
+                </Badge>
+              </IconButton>
 
               {/* Login Button or Profile Menu */}
               {isAuthenticated ? (
