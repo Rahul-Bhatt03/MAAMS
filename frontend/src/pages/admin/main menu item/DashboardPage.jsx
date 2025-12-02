@@ -1,19 +1,38 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUsersByRole } from "../../../../features/authSlice.js";
-import { Grid, Typography, Paper, List, ListItem, ListItemText } from "@mui/material";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  Box,
+  Typography,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+  Fade,
+} from "@mui/material";
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const DashboardPage = () => {
   const dispatch = useDispatch();
   const { usersByRole, loading, error } = useSelector((state) => state.auth);
+  const [showCards, setShowCards] = useState(false);
 
   useEffect(() => {
-    // Fetch newly registered users (e.g., role = "public")
     dispatch(fetchUsersByRole("public"));
+    const timer = setTimeout(() => setShowCards(true), 200);
+    return () => clearTimeout(timer);
   }, [dispatch]);
 
-  // Dummy data for charts, staff on holiday, and recent events
   const chartData = [
     { name: "Jan", Patients: 4000, Appointments: 2400 },
     { name: "Feb", Patients: 3000, Appointments: 1398 },
@@ -39,81 +58,146 @@ const DashboardPage = () => {
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ p: 2, bgcolor: "#f5f6fa", minHeight: "100vh" }}>
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{ fontWeight: 600, color: "#2c3e50", mb: 2 }}
+      >
         Dashboard Overview
       </Typography>
 
-      <Grid container spacing={3}>
-        {/* Chart Section */}
-        <Grid item xs={12} md={8}>
-          <Paper elevation={3} style={{ padding: "16px" }}>
-            <Typography variant="h6" gutterBottom>
-              Patient and Appointment Statistics
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="Patients" fill="#8884d8" />
-                <Bar dataKey="Appointments" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
+      {/* TOP STATISTICS CARD */}
+      <Fade in={showCards} timeout={600}>
+        <Paper
+          elevation={4}
+          sx={{
+            borderRadius: 2,
+            mb: 3,
+            p: 2,
+            height: { xs: 220, md: 260 },
+            bgcolor: "#ffffff",
+            boxShadow: "0px 3px 12px rgba(0,0,0,0.08)",
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 500 }}>
+            Patient & Appointment Statistics
+          </Typography>
 
-        {/* Staff on Holiday Section */}
-        <Grid item xs={12} md={4}>
-          <Paper elevation={3} style={{ padding: "16px" }}>
-            <Typography variant="h6" gutterBottom>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="Patients" fill="#3498db" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Appointments" fill="#2ecc71" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Paper>
+      </Fade>
+
+      {/* MIDDLE TWO CARDS – SPACING FIXED + Equal Height */}
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        {/* Staff on Holiday */}
+        <Fade in={showCards} timeout={800}>
+          <Paper
+            elevation={3}
+            sx={{
+              flex: 1,
+              minWidth: 280,
+              p: 1.5,
+              borderRadius: 2,
+              bgcolor: "#ffffff",
+              height: 250, // equal height
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 1.2, fontWeight: 500 }}>
               Staff on Holiday
             </Typography>
-            <List>
+            <List dense>
               {staffOnHoliday.map((staff, index) => (
-                <ListItem key={index}>
-                  <ListItemText primary={staff.name} secondary={staff.department} />
+                <ListItem key={index} divider sx={{ py: 0.5 }}>
+                  <ListItemText
+                    primary={staff.name}
+                    secondary={staff.department}
+                  />
                 </ListItem>
               ))}
             </List>
           </Paper>
-        </Grid>
+        </Fade>
 
-        {/* Recent Events Section */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} style={{ padding: "16px" }}>
-            <Typography variant="h6" gutterBottom>
+        {/* Recent Events */}
+        <Fade in={showCards} timeout={1000}>
+          <Paper
+            elevation={3}
+            sx={{
+              flex: 1,
+              minWidth: 280,
+              p: 1.5,
+              borderRadius: 2,
+              bgcolor: "#ffffff",
+              height: 250, // equal height
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 1.2, fontWeight: 500 }}>
               Recent Events
             </Typography>
-            <List>
+            <List dense>
               {recentEvents.map((event, index) => (
-                <ListItem key={index}>
-                  <ListItemText primary={event.event} secondary={event.date} />
+                <ListItem key={index} divider sx={{ py: 0.5 }}>
+                  <ListItemText
+                    primary={event.event}
+                    secondary={event.date}
+                  />
                 </ListItem>
               ))}
             </List>
           </Paper>
-        </Grid>
+        </Fade>
+      </Box>
 
-        {/* Newly Registered Users Section */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} style={{ padding: "16px" }}>
-            <Typography variant="h6" gutterBottom>
-              Newly Registered Users
-            </Typography>
-            <List>
-              {usersByRole.map((user, index) => (
-                <ListItem key={index}>
+      {/* BOTTOM USER LIST — Reduced Padding */}
+      <Fade in={showCards} timeout={1200}>
+        <Paper
+          elevation={3}
+          sx={{
+            borderRadius: 2,
+            p: 1.5,
+            bgcolor: "#ffffff",
+            maxWidth: 600,
+            mb: 3,
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 1.2, fontWeight: 500 }}>
+            Newly Registered Users
+          </Typography>
+
+          <List dense>
+            {usersByRole.length === 0 ? (
+              <Typography sx={{ p: 1, color: "gray" }}>
+                No registered users found.
+              </Typography>
+            ) : (
+              usersByRole.map((user) => (
+                <ListItem key={user.id} divider sx={{ py: 0.5 }}>
                   <ListItemText primary={user.name} secondary={user.email} />
                 </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-      </Grid>
-    </div>
+              ))
+            )}
+          </List>
+        </Paper>
+      </Fade>
+    </Box>
   );
 };
 

@@ -925,11 +925,8 @@ getStatusColor={getStatusColor}
           }}
       >
         <DialogTitle
-          sx={{
-            position:'sticky',
-          top:0,
+          sx={{ 
           backgroundColor:'background.paper',
-          zIndex:1,
           borderBottom:'1px solid',
           borderColor:'divider',
            }}
@@ -959,15 +956,13 @@ getStatusColor={getStatusColor}
             px: isMobile?2:3,
             py: 2,
             scrollBehavior: 'smooth',
-            WebkitOverflowScrolling: 'touch',
+            
           }}
         >
           <Box sx={{ borderBottom: 1,
            borderColor: "divider",
-             position:'sticky',
-             top: isMobile ? 56 : 64,
              backgroundColor:'background.paper',
-             zIndex:1,
+           
               }}
               >
             <Tabs value={tabValue} onChange={handleTabChange}
@@ -1002,7 +997,7 @@ getStatusColor={getStatusColor}
                   margin="normal"
                 />
               </Grid>
-
+              <Grid item xs={12} sm={6}>
               <FormControl 
   fullWidth 
   margin="normal" 
@@ -1027,6 +1022,7 @@ getStatusColor={getStatusColor}
     <FormHelperText error>{getError("gender")}</FormHelperText>
   )}
 </FormControl>
+              </Grid> 
 
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -1043,15 +1039,16 @@ getStatusColor={getStatusColor}
                   margin="normal"
                 />
               </Grid>
+              <Grid item xs={12} sm={6}>
               <FormControl fullWidth margin="normal">
   <InputLabel>Blood Group</InputLabel>
   <Select
     name="bloodGroup"
-    value={patientFormData.bloodGroup || null}  // Use null instead of empty string
+    value={patientFormData.bloodGroup || ""}  // Use null instead of empty string
     onChange={handleFormChange}
     label="Blood Group"
   >
-    <MenuItem value={null}>Select Blood Group</MenuItem>
+    <MenuItem value="">Select Blood Group</MenuItem>
     <MenuItem value="A+">A+</MenuItem>
     <MenuItem value="A-">A-</MenuItem>
     <MenuItem value="B+">B+</MenuItem>
@@ -1062,6 +1059,7 @@ getStatusColor={getStatusColor}
     <MenuItem value="O-">O-</MenuItem>
   </Select>
 </FormControl>
+              </Grid> 
 
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -1091,10 +1089,17 @@ getStatusColor={getStatusColor}
                 />
               </Grid>
 
-              <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-                  Address
-                </Typography>
+              <Grid item xs={12} sm={12}>
+                <TextField 
+                  fullWidth
+                  label=" Address"
+                  name="address"
+                  value={patientFormData.address.adress}
+                  onChange={(e)=> handleFormChange(e,"adress")} 
+                  margin="normal"
+                  />
+                  
+               
               </Grid>
 
               <Grid item xs={12}>
@@ -1373,16 +1378,22 @@ getStatusColor={getStatusColor}
                         helperText={getError("dischargeDate")}
                       />
                     )}
-                    disabled={patientFormData.status !== "Discharged"}
+                    required={patientFormData.status !== "Discharged"}
                   />
                 </LocalizationProvider>
               </Grid>
 
               {/* Profile Picture Upload */}
-              <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-                  Profile Picture
-                </Typography>
+              <Grid item xs={12} sm={6}>
+               <TextField
+                  fullWidth
+                  label="Profile Picture"
+                  name="profilePic"
+                  value={patientFormData.profilePic}
+                  onChange={handleFormChange}
+                  margin="normal"
+                   disabled       
+                      />
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   {(patientFormData.profilePic || uploadedImageUrl) && (
@@ -1404,7 +1415,7 @@ getStatusColor={getStatusColor}
                     component="label"
                     variant="outlined"
                     startIcon={<CloudUploadIcon />}
-                    disabled={uploadLoading}
+                    required={uploadLoading}
                   >
                     {uploadLoading ? "Uploading..." : "Upload Photo"}
                     <input
@@ -1431,10 +1442,15 @@ getStatusColor={getStatusColor}
                 </Box>
               </Grid>
 
-              <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-                  Insurance Information
-                </Typography>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Insurance Information"
+                  name="insuranceInfo"
+                  value={patientFormData.insuranceInfo.info}
+                  onChange={(e) => handleFormChange(e, "insuranceInfo")}
+                  margin="normal"
+                />
               </Grid>
 
               <Grid item xs={12} sm={6}>
@@ -1508,10 +1524,20 @@ getStatusColor={getStatusColor}
           {/* Medical History Tab */}
           {tabValue === 4 && (
             <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-                  Add Medical History
-                </Typography>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Add Medical History Record"
+                  value={tempMedicalHistory.medicalHistory}
+                  onChange={(e) =>
+                    setTempMedicalHistory({
+                      ...tempMedicalHistory,
+                      medicalHistory: e.target.value,
+                    })
+                  }
+                  margin="normal"
+                  required
+                />
               </Grid>
 
               {/* Medical History Form */}
@@ -1543,10 +1569,14 @@ getStatusColor={getStatusColor}
                       })
                     }
                     renderInput={(params) => (
-                      <TextField {...params} fullWidth margin="normal" />
+                      <TextField {...params}
+                       fullWidth
+                        margin="normal" />
+
                     )}
                   />
                 </LocalizationProvider>
+             
               </Grid>
 
               <Grid item xs={12} sm={6}>
@@ -1561,6 +1591,7 @@ getStatusColor={getStatusColor}
                     })
                   }
                   margin="normal"
+                  required
                 />
               </Grid>
 
@@ -1650,13 +1681,27 @@ getStatusColor={getStatusColor}
           )}
 
           {/* Medications Tab */}
+          
           {tabValue === 5 && (
             <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-                  Add Current Medication
-                </Typography>
+              <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Add Medication"
+                value={tempMedication.medication}
+                onChange={(e) =>
+                  setTempMedication({
+                    ...tempMedication,
+                    medication: e.target.value,
+                  })
+                }
+                margin="normal"
+                required
+              />
               </Grid>
+              
+
+            
 
               {/* Medication Form */}
               <Grid item xs={12} sm={6}>
